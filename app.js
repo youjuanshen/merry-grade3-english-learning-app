@@ -698,7 +698,22 @@ function speakWord(word) {
         return;
     }
 
-    // 请求服务器TTS音频
+    // 非 localhost：直接用 speechSynthesis（GitHub Pages 无服务器 TTS）
+    var _ttsIsLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (!_ttsIsLocal) {
+        if (window.speechSynthesis) {
+            var utt = new SpeechSynthesisUtterance(word);
+            utt.lang = 'en-US';
+            utt.rate = 0.85;
+            window.speechSynthesis.speak(utt);
+            console.log('[TTS] speechSynthesis fallback:', word);
+        } else {
+            console.warn('[TTS] speechSynthesis not available');
+        }
+        return;
+    }
+
+    // localhost：请求服务器TTS音频
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/tts?text=' + encodeURIComponent(word), true);
     xhr.responseType = 'arraybuffer';

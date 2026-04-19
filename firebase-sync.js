@@ -3,9 +3,10 @@
  * 通过腾讯云函数 + 飞书多维表格实现多设备通信
  */
 
-// 走本地代理解决 HTTPS 跨域问题，服务端转发到腾讯云 SCF
-const SCF_URL = "/api/scf";
-const SCF_API_KEY = "merry-quiz-2026-secret";
+// 环境判断：localhost 走本地代理，否则直连 SCF（GitHub Pages 部署）
+var _isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+var SCF_URL = _isLocal ? "/api/scf" : "https://1316992450-2fbeeh6iet.ap-guangzhou.tencentscf.com/";
+var SCF_API_KEY = "merry-quiz-2026-secret";
 
 const _cache = {
     teacherCommand: null,

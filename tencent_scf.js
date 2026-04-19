@@ -3,6 +3,7 @@
 'use strict';
 
 import https from 'https';
+import crypto from 'crypto';
 
 const LARK_APP_ID = "cli_a93bc13364f88060";
 const LARK_APP_SECRET = "mJRuXzOQk9ejHdvIvFFfVbmvGycI1KdR";
@@ -164,6 +165,116 @@ async function getToken() {
         { app_id: LARK_APP_ID, app_secret: LARK_APP_SECRET }, null);
     if (!tk.tenant_access_token) throw new Error('no token: ' + JSON.stringify(tk));
     return tk.tenant_access_token;
+}
+
+// ========== 腾讯云 SOE 口语评测（REST API + TC3-HMAC-SHA256）==========
+
+function callSOERestAPI(audioBase64, refText) {
+    return new Promise(function(resolve, reject) {
+        var secretId  = process.env.TENCENT_SECRET_ID  || '';
+        var secretKey = process.env.TENCENT_SECRET_KEY || '';
+        var appId     = process.env.TENCENT_APP_ID     || '1316992450';
+
+        if (!secretId || !secretKey) {
+            return reject(new Error('SOE secrets not configured'));
+        }
+
+        var wordCount = refText.trim().split(/\s+/).length;
+        var voiceId   = 'scf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+
+        var payload = {
+            SeqId:          1,
+            IsEnd:          1,
+            VoiceFileType:  1,    // WAV
+            VoiceEncodeType: 1,
+            UserVoiceData:  audioBase64,
+            SessionId:      voiceId,
+            RefText:        refText,
+            WorkMode:       1,    // 流式（单包完整）
+            EvalMode:       wordCount <= 1 ? 0 : 1,   // 0=单词 1=句子
+            ScoreCoeff:     4.0,
+            SoeAppId:       appId,
+            IsQuery:        0,
+            SentenceInfoEnabled: 1
+        };
+
+        var bodyStr   = JSON.stringify(payload);
+        var timestamp = Math.floor(Date.now() / 1000);
+        var date      = new Date(timestamp * 1000).toISOString().substr(0, 10); // YYYY-MM-DD
+
+        // TC3-HMAC-SHA256 签名
+        var service   = 'soe';
+        var host      = 'soe.tencentcloudapi.com';
+        var algorithm = 'TC3-HMAC-SHA256';
+        var credScope = date + '/' + service + '/tc3_request';
+
+        var canonicalHeaders = 'content-type:application/json\nhost:' + host + '\n';
+        var signedHeaders    = 'content-type;host';
+
+        var hashedPayload    = crypto.createHash('sha256').update(bodyStr).digest('hex');
+        var canonicalReq     = 'POST\n/\n\n' + canonicalHeaders + '\n' + signedHeaders + '\n' + hashedPayload;
+        var hashedCanonical  = crypto.createHash('sha256').update(canonicalReq).digest('hex');
+        var stringToSign     = algorithm + '\n' + timestamp + '\n' + credScope + '\n' + hashedCanonical;
+
+        function hmacSHA256(key, data) {
+            return crypto.createHmac('sha256', key).update(data).digest();
+        }
+        var signingDate    = hmacSHA256('TC3' + secretKey, date);
+        var signingService = hmacSHA256(signingDate, service);
+        var signingRequest = hmacSHA256(signingService, 'tc3_request');
+        var signature      = crypto.createHmac('sha256', signingRequest).update(stringToSign).digest('hex');
+
+        var authorization = algorithm +
+            ' Credential=' + secretId + '/' + credScope +
+            ', SignedHeaders=' + signedHeaders +
+            ', Signature=' + signature;
+
+        var options = {
+            hostname: host,
+            path: '/',
+            method: 'POST',
+            headers: {
+                'Authorization':  authorization,
+                'Content-Type':   'application/json',
+                'Host':           host,
+                'X-TC-Action':    'TransmitOralProcessWithInit',
+                'X-TC-Version':   '2018-07-24',
+                'X-TC-Timestamp': String(timestamp),
+                'X-TC-Region':    'ap-guangzhou',
+                'Content-Length': Buffer.byteLength(bodyStr)
+            }
+        };
+
+        var req = https.request(options, function(res) {
+            var chunks = [];
+            res.on('data', function(c) { chunks.push(c); });
+            res.on('end', function() {
+                try {
+                    var resp = JSON.parse(Buffer.concat(chunks).toString());
+                    if (resp.Response && resp.Response.Error) {
+                        return reject(new Error('SOE API error: ' + resp.Response.Error.Code + ' ' + resp.Response.Error.Message));
+                    }
+                    var r = resp.Response || {};
+                    // SuggestedScore 或 PronAccuracy 作为总分
+                    var score    = Math.round(r.SuggestedScore || r.PronAccuracy || 0);
+                    var pronAcc  = (typeof r.PronAccuracy  === 'number') ? Math.round(r.PronAccuracy)  : null;
+                    var pronFlu  = (typeof r.PronFluency   === 'number') ? Math.round(r.PronFluency)   : null;
+                    var pronCmp  = (typeof r.PronCompletion=== 'number') ? Math.round(r.PronCompletion): null;
+                    var recognized = '';
+                    if (r.Words && r.Words.length > 0) {
+                        recognized = r.Words.map(function(w) { return w.Word || ''; }).join(' ');
+                    }
+                    resolve({ score: score, soePronAccuracy: pronAcc, soePronFluency: pronFlu, soePronCompletion: pronCmp, recognized: recognized });
+                } catch(e) {
+                    reject(new Error('SOE JSON parse: ' + e.message));
+                }
+            });
+        });
+        req.on('error', function(e) { reject(e); });
+        req.setTimeout(25000, function() { req.destroy(new Error('SOE request timeout')); });
+        req.write(bodyStr);
+        req.end();
+    });
 }
 
 // ========== 指令读写 ==========
@@ -500,6 +611,29 @@ export const main_handler = async (event, context) => {
                 speaking_leaderboard: speakingLeaderboard
             };
             return { statusCode: 200, headers: cors, body: JSON.stringify(result) };
+        }
+
+        // soeEval — 口语评测（GitHub Pages 直连 SCF 时用）
+        if (d.action === 'soeEval') {
+            if (!d.audio || !d.text) {
+                return { statusCode: 200, headers: cors, body: JSON.stringify({ code: -1, msg: 'missing audio or text' }) };
+            }
+            try {
+                var soeResult = await callSOERestAPI(d.audio, d.text);
+                return { statusCode: 200, headers: cors, body: JSON.stringify({
+                    code: 0,
+                    score: soeResult.score,
+                    soePronAccuracy: soeResult.soePronAccuracy,
+                    soePronFluency: soeResult.soePronFluency,
+                    soePronCompletion: soeResult.soePronCompletion,
+                    recognized: soeResult.recognized || ''
+                }) };
+            } catch(soeErr) {
+                return { statusCode: 200, headers: cors, body: JSON.stringify({
+                    code: -1, msg: soeErr.message,
+                    score: null, soePronAccuracy: null, soePronFluency: null, soePronCompletion: null, recognized: ''
+                }) };
+            }
         }
 
         // 1. 写入指令

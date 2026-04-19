@@ -23,6 +23,10 @@
     var TIMEOUT_MS = 15000; // iOS 12 网络较慢，15秒更安全
     var SAMPLE_RATE = 16000; // SOE 要求 16kHz
     var API_ENDPOINT = '/api/speech-eval';
+    // 环境判断：非 localhost 时直接调 SCF（GitHub Pages 部署）
+    var _soeIsLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    var SCF_ENDPOINT = 'https://1316992450-2fbeeh6iet.ap-guangzhou.tencentscf.com/';
+    var SCF_API_KEY = 'merry-quiz-2026-secret';
 
     // ===== WAV 编码（Float32 → 16bit PCM WAV Blob/Base64）=====
     function encodeWAV(samples, sampleRate) {
@@ -235,6 +239,61 @@
                 resolve(EMPTY);
             }, TIMEOUT_MS);
 
+            // 非 localhost：通过 SCF soeEval action 评分（XHR，iOS 12 兼容）
+            if (!_soeIsLocal) {
+                try {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', SCF_ENDPOINT, true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('X-Api-Key', SCF_API_KEY);
+                    xhr.timeout = TIMEOUT_MS;
+                    xhr.onload = function() {
+                        if (done) return;
+                        done = true;
+                        clearTimeout(timer);
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            if (!data || data.code !== 0) {
+                                console.warn('[SOE] SCF soeEval error: code=' + (data && data.code) + ' msg=' + (data && data.msg) + ' ref="' + referenceText + '"');
+                                resolve(EMPTY);
+                                return;
+                            }
+                            resolve({
+                                soeScore: (typeof data.score === 'number') ? data.score : null,
+                                soePronAccuracy: (typeof data.soePronAccuracy === 'number') ? data.soePronAccuracy : null,
+                                soePronFluency: (typeof data.soePronFluency === 'number') ? data.soePronFluency : null,
+                                soePronCompletion: (typeof data.soePronCompletion === 'number') ? data.soePronCompletion : null
+                            });
+                        } catch(e) {
+                            console.warn('[SOE] SCF soeEval JSON parse error:', e.message);
+                            resolve(EMPTY);
+                        }
+                    };
+                    xhr.onerror = function() {
+                        if (done) return;
+                        done = true;
+                        clearTimeout(timer);
+                        console.warn('[SOE] SCF soeEval network error');
+                        resolve(EMPTY);
+                    };
+                    xhr.ontimeout = function() {
+                        if (done) return;
+                        done = true;
+                        console.warn('[SOE] SCF soeEval timeout');
+                        resolve(EMPTY);
+                    };
+                    xhr.send(JSON.stringify({ action: 'soeEval', audio: audioBase64, text: referenceText }));
+                } catch(e) {
+                    if (done) return;
+                    done = true;
+                    clearTimeout(timer);
+                    console.warn('[SOE] SCF soeEval sync error:', e.message);
+                    resolve(EMPTY);
+                }
+                return;
+            }
+
+            // localhost：走本地代理 /api/speech-eval
             try {
                 fetch(API_ENDPOINT, {
                     method: 'POST',
