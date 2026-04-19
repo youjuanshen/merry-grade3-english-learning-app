@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课中控制 - Merry英语</title>
+    <link rel="stylesheet" href="teacher.css?v=50">
+    <style>
+        body {
+            background-color: #f2f6fa;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Ambient Dynamic Background Orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: -1;
+            animation: orbFloat 25s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 350px; height: 350px; background: rgba(88, 204, 2, 0.35); top: -100px; left: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: rgba(77, 196, 249, 0.25); bottom: -150px; right: -100px; animation-delay: -7s; }
+        .orb-3 { width: 250px; height: 250px; background: rgba(255, 185, 0, 0.2); top: 40%; left: 40%; animation-delay: -14s; }
+
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(50px, -60px) scale(1.1) rotate(10deg); }
+            100% { transform: translate(-30px, 40px) scale(0.95) rotate(-5deg); }
+        }
+
+        .control-header {
+            text-align: center;
+            color: #2c3e50;
+            padding: 10px 0 20px;
+        }
+        .control-header h2 {
+            font-size: 24px;
+            margin: 0 0 4px;
+            font-weight: 800;
+        }
+        .control-header .phase-badge {
+            display: inline-block;
+            background: rgba(88, 204, 2, 0.15);
+            color: #58cc02;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Timer card */
+        .timer-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 20px 24px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            margin-bottom: 20px;
+        }
+        .timer-label {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .timer-display {
+            font-size: 72px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: #333;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .timer-display.warning { color: var(--teacher-warning); }
+        .timer-display.danger {
+            color: var(--teacher-danger);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Timer presets */
+        .timer-presets {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .timer-preset {
+            padding: 8px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .timer-preset.active {
+            border-color: #58cc02;
+            color: #58cc02;
+            background: #f0fff0;
+        }
+        .timer-preset:active { transform: scale(0.95); }
+
+        /* Main launch button */
+        .launch-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #58cc02;
+            color: white;
+            box-shadow: 0 4px 0 #46a302;
+        }
+        .launch-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #46a302;
+        }
+        .launch-btn.disabled {
+            background: #e8e8e8;
+            color: #999;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        /* Timer mini controls (shown after launch) */
+        .timer-mini-controls {
+            display: none;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .timer-mini-controls.show { display: flex; }
+        .mini-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mini-btn:active { transform: scale(0.95); }
+        .mini-btn.pause-btn {
+            background: #fff3e0;
+            color: #ff9600;
+        }
+        .mini-btn.reset-btn {
+            background: transparent;
+            color: #bbb;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        /* ===== 全班跳转面板 ===== */
+        .jump-panel {
+            background: #1a252f;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-radius: 16px;
+            margin-bottom: 16px;
+        }
+        .jump-panel-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #bdc3c7;
+            white-space: nowrap;
+        }
+        .jump-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .btn-jump {
+            flex: 1;
+            min-width: 70px;
+            padding: 14px 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .btn-jump:active { opacity: 0.75; transform: scale(0.96); }
+        .btn-jump-listening { background: #2980b9; color: white; }
+        .btn-jump-reading    { background: #27ae60; color: white; }
+        .btn-jump-writing    { background: #8e44ad; color: white; }
+        .btn-jump-speaking   { background: #c0392b; color: white; }
+        .jump-status {
+            font-size: 13px;
+            color: #95a5a6;
+            width: 100%;
+            text-align: center;
+            min-height: 18px;
+        }
+        .jump-status.ok  { color: #2ecc71; }
+        .jump-status.err { color: #e74c3c; }
+
+    </style>
+</head>
+<body data-page="control">
+    <!-- 动态氛围背景 -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="top-nav" style="background: transparent; box-shadow: none;">
+        <a href="index.html" class="back-btn" style="color: #46a302;">← 返回</a>
+        <h1 style="color: #2c3e50;">🎯 课中控制</h1>
+    </div>
+    
+    <div class="teacher-view" style="padding-top: 0;">
+        <!-- 全班跳转面板 -->
+        <div class="jump-panel">
+            <span class="jump-panel-label">全班跳转：</span>
+            <div class="jump-btns">
+                <button class="btn-jump btn-jump-listening" onclick="sendNavigate('listening')">🎧 全班听力</button>
+                <button class="btn-jump btn-jump-reading"   onclick="sendNavigate('reading')">📖 全班阅读</button>
+                <button class="btn-jump btn-jump-writing"   onclick="sendNavigate('writing')">✏️ 全班写作</button>
+                <button class="btn-jump btn-jump-speaking"  onclick="sendNavigate('speaking')">🎤 全班口语</button>
+            </div>
+            <span class="jump-status" id="jump-status">待机中</span>
+        </div>
+
+        <div class="control-header">
+            <h2 id="display-module">听力 - 热身赛</h2>
+            <span class="phase-badge" id="phase-badge">🏃 热身赛阶段</span>
+        </div>
+
+        <div class="timer-card">
+            <div class="timer-label">⏱ 活动倒计时</div>
+            <div class="timer-display" id="timer-display">05:00</div>
+            
+            <div class="timer-presets" id="timer-presets">
+                <div class="timer-preset active" data-min="5">5分钟</div>
+                <div class="timer-preset" data-min="10">10分钟</div>
+                <div class="timer-preset" data-min="15">15分钟</div>
+                <div class="timer-preset" data-min="20">20分钟</div>
+            </div>
+
+            <!-- Main action: launch practice + start timer -->
+            <button class="launch-btn" id="btn-launch">🚀 进入闯关赛</button>
+
+            <!-- Mini controls: appear after launch -->
+            <div class="timer-mini-controls" id="timer-controls">
+                <button class="mini-btn pause-btn" id="btn-timer-pause">⏸ 暂停</button>
+                <button class="mini-btn reset-btn" id="btn-timer-reset">重新计时</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="../firebase-sync.js?v=50"></script>
+    <script src="data.js?v=50"></script>
+    <script src="teacher.js?v=51"></script>
+    <script>
+        var totalSeconds = 5 * 60;
+        var remainingSeconds = totalSeconds;
+        var timerInterval = null;
+        var timerRunning = false;
+        var launched = false;
+
+        var timerDisplay = document.getElementById('timer-display');
+        var btnLaunch = document.getElementById('btn-launch');
+        var btnTimerPause = document.getElementById('btn-timer-pause');
+        var btnTimerReset = document.getElementById('btn-timer-reset');
+        var timerControls = document.getElementById('timer-controls');
+
+        function formatTime(sec) {
+            var m = Math.floor(sec / 60).toString().padStart(2, '0');
+            var s = (sec % 60).toString().padStart(2, '0');
+            return m + ':' + s;
+        }
+
+        function updateTimerUI() {
+            timerDisplay.textContent = formatTime(remainingSeconds);
+            timerDisplay.className = 'timer-display';
+            if (remainingSeconds <= 0) {
+                timerDisplay.classList.add('danger');
+            } else if (remainingSeconds <= 60) {
+                timerDisplay.classList.add('warning');
+            }
+        }
+
+        function startCountdown() {
+            timerRunning = true;
+            btnTimerPause.textContent = '⏸ 暂停';
+            btnTimerPause.style.background = '#fff3e0';
+            btnTimerPause.style.color = '#ff9600';
+            timerInterval = setInterval(function() {
+                remainingSeconds--;
+                updateTimerUI();
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    timerDisplay.textContent = '00:00';
+                    btnTimerPause.textContent = '✅ 已结束';
+                    btnTimerPause.disabled = true;
+                    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch(e) {}
+                    alert('⏰ 时间到！');
+                }
+            }, 1000);
+        }
+
+        // Timer pause/resume
+        btnTimerPause.onclick = function() {
+            if (!timerRunning) {
+                startCountdown();
+            } else {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                this.textContent = '▶ 继续';
+                this.style.background = '#e8f5e9';
+                this.style.color = '#58cc02';
+            }
+        };
+
+        // Timer reset
+        btnTimerReset.onclick = function() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            remainingSeconds = totalSeconds;
+            btnTimerPause.textContent = '⏸ 暂停';
+            btnTimerPause.style.background = '#fff3e0';
+            btnTimerPause.style.color = '#ff9600';
+            btnTimerPause.disabled = false;
+            updateTimerUI();
+            startCountdown();
+        };
+
+        // Timer presets
+        var presets = document.querySelectorAll('.timer-preset');
+        presets.forEach(function(p) {
+            p.addEventListener('click', function() {
+                if (launched) return; // Can't change after launch
+                presets.forEach(function(pp) { pp.classList.remove('active'); });
+                p.classList.add('active');
+                totalSeconds = parseInt(p.dataset.min) * 60;
+                remainingSeconds = totalSeconds;
+                updateTimerUI();
+            });
+        });
+
+        updateTimerUI();
+
+        // ===== 全班跳转：SCF 通信 =====
+        var SCF_URL = "/api/scf";
+        var SCF_API_KEY = "merry-quiz-2026-secret";
+
+        function scfPost(data) {
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', SCF_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('X-Api-Key', SCF_API_KEY);
+                xhr.timeout = 15000;
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { resolve(JSON.parse(xhr.responseText)); }
+                        catch(e) { reject(new Error('JSON 解析失败')); }
+                    } else {
+                        reject(new Error('HTTP ' + xhr.status));
+                    }
+                };
+                xhr.onerror   = function() { reject(new Error('网络错误')); };
+                xhr.ontimeout = function() { reject(new Error('请求超时')); };
+                xhr.send(JSON.stringify(data));
+            });
+        }
+
+        var MODULE_NAMES = { listening: '听力', reading: '阅读', writing: '写作', speaking: '口语' };
+
+        function sendNavigate(module) {
+            var statusEl = document.getElementById('jump-status');
+            statusEl.className = 'jump-status';
+            statusEl.textContent = '发送中…';
+
+            var cmd = { action: 'navigate', module: module, timestamp: Date.now() };
+            scfPost({ action: 'set', key: 'teacherCommand', value: JSON.stringify(cmd) })
+                .then(function() {
+                    var label = MODULE_NAMES[module] || module;
+                    statusEl.className = 'jump-status ok';
+                    statusEl.textContent = '✓ 已发送 → ' + label + '  ' + new Date().toLocaleTimeString();
+                })
+                .catch(function(err) {
+                    statusEl.className = 'jump-status err';
+                    statusEl.textContent = '✗ 发送失败：' + err.message;
+                });
+        }
+    </script>
+</body>
+</html>

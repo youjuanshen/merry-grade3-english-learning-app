@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时课堂 Dashboard — Merry English</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        /* ===== 顶栏 ===== */
+        .topbar {
+            background: #2c3e50;
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .topbar-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar-time {
+            font-size: 13px;
+            color: #aab8c2;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn:active { opacity: 0.75; }
+        .btn-refresh {
+            background: #3498db;
+            color: white;
+        }
+        .btn-config {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* ===== 配置面板 ===== */
+        .config-panel {
+            display: none;
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+        .config-panel.open { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        .config-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .config-group select,
+        .config-group input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            min-width: 160px;
+        }
+        .config-group select:focus,
+        .config-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .btn-apply {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        /* ===== 主内容区 ===== */
+        .content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        /* ===== 状态条 ===== */
+        .status-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 5px solid #2c3e50;
+        }
+        .status-bar-left {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .status-bar-right {
+            font-size: 15px;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .status-elapsed {
+            font-size: 14px;
+            color: #7f8c8d;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* ===== 卡片区块 ===== */
+        .section {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .section-header {
+            padding: 14px 20px;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-header .badge {
+            background: rgba(255,255,255,0.35);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .section-body {
+            padding: 16px;
+            background: white;
+        }
+
+        /* ===== 完成区块（绿） ===== */
+        .section-completed .section-header {
+            background: #27ae60;
+            color: white;
+        }
+        .pair-card-completed {
+            background: #eafaf1;
+            border: 2px solid #2ecc71;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .pair-card-completed:last-child { margin-bottom: 0; }
+        .pair-members {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a5e30;
+        }
+        .pair-meta {
+            font-size: 14px;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .pair-stars { color: #f39c12; font-size: 16px; }
+        .pair-speak { color: #2980b9; font-size: 16px; }
+        .btn-challenge {
+            background: #f39c12;
+            color: white;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        /* ===== 需要帮助区块（橙） ===== */
+        .section-help .section-header {
+            background: #e67e22;
+            color: white;
+        }
+        .pair-card-help {
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+        }
+        .pair-card-help:last-child { margin-bottom: 0; }
+        .pair-card-help .pair-members {
+            color: #7d3a00;
+            font-size: 17px;
+        }
+        .help-details {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .help-tag {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .help-tag strong {
+            color: #c0392b;
+            font-size: 15px;
+        }
+        .scaffold-indicator {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        /* ===== 口语榜（蓝） ===== */
+        .section-speaking .section-header {
+            background: #2980b9;
+            color: white;
+        }
+        .speaking-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .speaking-item {
+            background: #ebf5fb;
+            border: 2px solid #aed6f1;
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 130px;
+        }
+        .speaking-item.is-lowest {
+            background: #fdebd0;
+            border-color: #f39c12;
+        }
+        .speaking-rank {
+            font-size: 13px;
+            color: #7f8c8d;
+            min-width: 20px;
+        }
+        .speaking-pair {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a4f7a;
+        }
+        .speaking-count {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2980b9;
+            margin-left: auto;
+        }
+        .speaking-item.is-lowest .speaking-count { color: #e67e22; }
+        .lowest-badge {
+            font-size: 11px;
+            background: #e67e22;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* ===== 全部正常 ===== */
+        .all-ok-card {
+            background: white;
+            border-radius: 14px;
+            padding: 40px 24px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            font-size: 20px;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .all-ok-card .sub {
+            font-size: 15px;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        /* ===== 加载 / 错误 ===== */
+        .loading-card {
+            background: white;
+            border-radius: 14px;
+            padding: 40px 24px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            font-size: 17px;
+            color: #7f8c8d;
+        }
+        .spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid #ddd;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-card {
+            background: #fdeaea;
+            border: 2px solid #e74c3c;
+            border-radius: 14px;
+            padding: 20px 24px;
+            color: #c0392b;
+            font-size: 15px;
+        }
+        .error-card .hint {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* ===== 全班跳转面板 ===== */
+        .jump-panel {
+            background: #1a252f;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #34495e;
+        }
+        .jump-panel-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #bdc3c7;
+            white-space: nowrap;
+        }
+        .jump-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-jump {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            letter-spacing: 0.3px;
+        }
+        .btn-jump:active { opacity: 0.75; transform: scale(0.96); }
+        .btn-jump-listening { background: #2980b9; color: white; }
+        .btn-jump-reading    { background: #27ae60; color: white; }
+        .btn-jump-writing    { background: #8e44ad; color: white; }
+        .btn-jump-speaking   { background: #c0392b; color: white; }
+        .jump-status {
+            font-size: 13px;
+            color: #95a5a6;
+            margin-left: 4px;
+        }
+        .jump-status.ok { color: #2ecc71; }
+        .jump-status.err { color: #e74c3c; }
+
+        /* ===== 响应式 ===== */
+        @media (min-width: 768px) {
+            .content {
+                grid-template-columns: 1fr 1fr;
+            }
+            .status-bar, .section-speaking, .all-ok-card, .loading-card, .error-card {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="topbar">
+    <div class="topbar-title">📡 实时课堂 Dashboard</div>
+    <div class="topbar-right">
+        <span class="topbar-time" id="last-update">等待数据...</span>
+        <button class="btn btn-refresh" onclick="fetchNow()">刷新</button>
+        <button class="btn btn-config" onclick="toggleConfig()">⚙ 设置</button>
+        <a href="index.html" style="color:#aab8c2; font-size:13px; text-decoration:none;">← 返回</a>
+    </div>
+</div>
+
+<!-- 配置面板 -->
+<div class="config-panel" id="config-panel">
+    <div class="config-group">
+        <label>班级 classId</label>
+        <input type="text" id="cfg-classId" value="grade3_class1" placeholder="grade3_class1">
+    </div>
+    <div class="config-group">
+        <label>课程 lessonId</label>
+        <select id="cfg-lessonId">
+            <option value="U1L1">U1L1 — Unit 1 Lesson 1</option>
+            <option value="U1L2">U1L2 — Unit 1 Lesson 2</option>
+            <option value="U2L1">U2L1 — Unit 2 Lesson 1</option>
+        </select>
+    </div>
+    <div class="config-group">
+        <label>刷新间隔</label>
+        <select id="cfg-interval">
+            <option value="30">30 秒</option>
+            <option value="60">60 秒</option>
+            <option value="15">15 秒</option>
+        </select>
+    </div>
+    <button class="btn btn-apply" onclick="applyConfig()">应用并刷新</button>
+</div>
+
+<!-- 全班跳转面板 -->
+<div class="jump-panel">
+    <span class="jump-panel-label">全班跳转：</span>
+    <div class="jump-btns">
+        <button class="btn btn-jump btn-jump-listening" onclick="sendNavigate('listening')">🎧 全班听力</button>
+        <button class="btn btn-jump btn-jump-reading"   onclick="sendNavigate('reading')">📖 全班阅读</button>
+        <button class="btn btn-jump btn-jump-writing"   onclick="sendNavigate('writing')">✏️ 全班写作</button>
+        <button class="btn btn-jump btn-jump-speaking"  onclick="sendNavigate('speaking')">🎤 全班口语</button>
+    </div>
+    <span class="jump-status" id="jump-status">待机中</span>
+</div>
+
+<!-- 主内容区 -->
+<div class="content" id="main-content">
+    <div class="loading-card" style="grid-column:1/-1">
+        <span class="spinner"></span> 正在加载课堂数据...
+    </div>
+</div>
+
+<script>
+    // ===== 配置 =====
+    // 教师后台通过本地服务器代理转发（与学生端 firebase-sync.js 共用同一个 localStore）
+    var SCF_URL = "/api/scf";
+    var SCF_API_KEY = "merry-quiz-2026-secret";
+
+    var config = {
+        classId: 'grade3_class1',
+        lessonId: 'U1L1',
+        intervalSec: 30
+    };
+
+    var pollTimer = null;
+
+    // ===== SCF 请求 =====
+    function scfPost(data) {
+        return new Promise(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', SCF_URL, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-Api-Key', SCF_API_KEY);
+            xhr.timeout = 15000;
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try { resolve(JSON.parse(xhr.responseText)); }
+                    catch(e) { reject(new Error('JSON 解析失败')); }
+                } else {
+                    reject(new Error('HTTP ' + xhr.status));
+                }
+            };
+            xhr.onerror = function() { reject(new Error('网络错误')); };
+            xhr.ontimeout = function() { reject(new Error('请求超时')); };
+            xhr.send(JSON.stringify(data));
+        });
+    }
+
+    // ===== 拉数据 =====
+    function fetchNow() {
+        document.getElementById('last-update').textContent = '刷新中...';
+        scfPost({
+            action: 'queryProgress',
+            classId: config.classId,
+            lessonId: config.lessonId
+        }).then(function(resp) {
+            var now = new Date();
+            var timeStr = now.getHours() + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+            document.getElementById('last-update').textContent = '上次刷新 ' + timeStr;
+            if (resp.code === 0) {
+                renderDashboard(resp);
+            } else {
+                renderError('SCF 返回错误：' + (resp.msg || JSON.stringify(resp)));
+            }
+        }).catch(function(err) {
+            document.getElementById('last-update').textContent = '刷新失败';
+            renderError(err.message, true);
+        });
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+    // ===== 渲染主体 =====
+    function renderDashboard(data) {
+        var container = document.getElementById('main-content');
+        var html = '';
+
+        // 状态条
+        var className = friendlyClass(data.class_id);
+        var elapsed = data.lesson_elapsed_min || 0;
+        var totalPairs = data.total_pairs || 0;
+        var normalCount = data.normal_pairs_count || 0;
+        html += '<div class="status-bar">';
+        html +=   '<div class="status-bar-left">' + escHtml(className) + ' · ' + escHtml(data.lesson_id) + '</div>';
+        html +=   '<span class="status-elapsed">第 ' + elapsed + ' 分钟</span>';
+        html +=   '<div class="status-bar-right">其他 ' + normalCount + ' 组正常进行中 ✓</div>';
+        html += '</div>';
+
+        var completed = data.completed_pairs || [];
+        var needsHelp = data.needs_help_pairs || [];
+        var leaderboard = data.speaking_leaderboard || [];
+
+        // 两个列表都空 → 全部正常
+        if (completed.length === 0 && needsHelp.length === 0 && totalPairs === 0) {
+            html += '<div class="all-ok-card" style="grid-column:1/-1">';
+            html +=   '🎉 暂无数据';
+            html +=   '<div class="sub">今天还没有小组开始练习，或数据尚未同步</div>';
+            html += '</div>';
+        } else if (completed.length === 0 && needsHelp.length === 0) {
+            html += '<div class="all-ok-card" style="grid-column:1/-1">';
+            html +=   '🎉 所有组正常进行中，继续观察';
+            html +=   '<div class="sub">共 ' + totalPairs + ' 组在练习，没有需要干预的情况</div>';
+            html += '</div>';
+        } else {
+            // 完成板块
+            html += '<div class="section section-completed">';
+            html +=   '<div class="section-header">✅ 已完成主线 — 给他们挑战任务';
+            html +=     '<span class="badge">' + completed.length + ' 组</span>';
+            html +=   '</div>';
+            html +=   '<div class="section-body">';
+            if (completed.length === 0) {
+                html += '<div style="color:#7f8c8d;font-size:15px;">暂无已完成的小组</div>';
+            } else {
+                completed.forEach(function(p) {
+                    html += '<div class="pair-card-completed">';
+                    html +=   '<div>';
+                    html +=     '<div class="pair-members">组' + escHtml(p.pair_id) + '  ' + escHtml((p.members || []).join(' & ')) + '</div>';
+                    html +=     '<div class="pair-meta">';
+                    html +=       '<span class="pair-stars">⭐ ' + (p.stars || 0) + '</span>';
+                    html +=       '  <span class="pair-speak">🗣 ' + (p.speaking_count || 0) + '</span>';
+                    html +=     '</div>';
+                    html +=   '</div>';
+                    html +=   '<button class="btn btn-challenge" onclick="remindChallenge(\'' + escAttr(p.pair_id) + '\')">一键提醒挑战模式</button>';
+                    html += '</div>';
+                });
+            }
+            html +=   '</div>';
+            html += '</div>';
+
+            // 需要帮助板块
+            html += '<div class="section section-help">';
+            html +=   '<div class="section-header">⚠ 需要你去帮助 — L4 支架仍卡住';
+            html +=     '<span class="badge">' + needsHelp.length + ' 组</span>';
+            html +=   '</div>';
+            html +=   '<div class="section-body">';
+            if (needsHelp.length === 0) {
+                html += '<div style="color:#7f8c8d;font-size:15px;">暂无需要帮助的小组</div>';
+            } else {
+                needsHelp.forEach(function(p) {
+                    html += '<div class="pair-card-help">';
+                    html +=   '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
+                    html +=     '<div class="pair-members">组' + escHtml(p.pair_id) + '  ' + escHtml((p.members || []).join(' & ')) + '</div>';
+                    html +=     '<span class="scaffold-indicator">L' + p.scaffold_level + ' 支架</span>';
+                    html +=   '</div>';
+                    html +=   '<div class="help-details">';
+                    html +=     '<span class="help-tag">📍 第 <strong>' + (p.current_station || '?') + '</strong> 站</span>';
+                    html +=     '<span class="help-tag">❌ 已错 <strong>' + (p.retry_count || 0) + '</strong> 次</span>';
+                    html +=     '<span class="help-tag">🗣 说话 <strong>' + (p.speaking_count || 0) + '</strong> 次</span>';
+                    if (p.soe_avg > 0) {
+                        html +=   '<span class="help-tag">SOE均分 <strong>' + p.soe_avg + '</strong></span>';
+                    }
+                    html +=   '</div>';
+                    html += '</div>';
+                });
+            }
+            html +=   '</div>';
+            html += '</div>';
+        }
+
+        // 口语触发榜（总是显示，只要有数据）
+        if (leaderboard.length > 0) {
+            html += '<div class="section section-speaking">';
+            html +=   '<div class="section-header">📊 本节口语触发榜 <span style="font-size:13px;font-weight:400;opacity:0.85;">（研究指标）</span></div>';
+            html +=   '<div class="section-body">';
+            html +=     '<div class="speaking-list">';
+            leaderboard.forEach(function(item, idx) {
+                var isLow = item.is_lowest && leaderboard.length > 1;
+                html += '<div class="speaking-item' + (isLow ? ' is-lowest' : '') + '">';
+                html +=   '<span class="speaking-rank">#' + (idx + 1) + '</span>';
+                html +=   '<span class="speaking-pair">组' + escHtml(item.pair_id) + '</span>';
+                html +=   '<span class="speaking-count">🗣 ' + (item.speaking_count || 0) + '</span>';
+                if (isLow) {
+                    html += ' <span class="lowest-badge">最少</span>';
+                }
+                html += '</div>';
+            });
+            html +=     '</div>';
+            html +=   '</div>';
+            html += '</div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    // ===== 工具函数 =====
+    function friendlyClass(classId) {
+        var map = {
+            'grade3_class1': '三下1班',
+            'grade3_class2': '三下2班',
+            'grade4_class1': '四年1班'
+        };
+        return map[classId] || classId;
+    }
+
+    function escHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function escAttr(str) {
+        return String(str || '').replace(/'/g, '&#39;');
+    }
+
+    function renderError(msg, isNetwork) {
+        var hint = isNetwork
+            ? '提示：如果 SCF 函数尚未部署，数据将无法加载。请检查网络连接或 SCF 部署状态。'
+            : '请检查 SCF 函数日志或重新部署。';
+        document.getElementById('main-content').innerHTML =
+            '<div class="error-card" style="grid-column:1/-1">' +
+            '<strong>加载失败：</strong>' + escHtml(msg) +
+            '<div class="hint">' + hint + '</div>' +
+            '</div>';
+    }
+
+    // ===== 全班跳转：发送 navigate 指令 =====
+    var MODULE_NAMES = { listening: '听力', reading: '阅读', writing: '写作', speaking: '口语' };
+
+    function sendNavigate(module) {
+        var statusEl = document.getElementById('jump-status');
+        statusEl.className = 'jump-status';
+        statusEl.textContent = '发送中…';
+
+        var cmd = { action: 'navigate', module: module, timestamp: Date.now() };
+        scfPost({ action: 'set', key: 'teacherCommand', value: JSON.stringify(cmd) })
+            .then(function() {
+                var label = MODULE_NAMES[module] || module;
+                statusEl.className = 'jump-status ok';
+                statusEl.textContent = '✓ 已发送 → ' + label + '  ' + new Date().toLocaleTimeString();
+            })
+            .catch(function(err) {
+                statusEl.className = 'jump-status err';
+                statusEl.textContent = '✗ 发送失败：' + err.message;
+            });
+    }
+
+    // ===== 提醒挑战（仅UI操作，不实际推送） =====
+    function remindChallenge(pairId) {
+        alert('已标记：组 ' + pairId + ' → 请去提醒他们进入挑战模式！\n（此操作不会向 App 发送任何指令）');
+    }
+
+    // ===== 配置面板 =====
+    function toggleConfig() {
+        var panel = document.getElementById('config-panel');
+        if (panel.classList.contains('open')) {
+            panel.classList.remove('open');
+        } else {
+            document.getElementById('cfg-classId').value = config.classId;
+            document.getElementById('cfg-lessonId').value = config.lessonId;
+            document.getElementById('cfg-interval').value = String(config.intervalSec);
+            panel.classList.add('open');
+        }
+    }
+
+    function applyConfig() {
+        config.classId = document.getElementById('cfg-classId').value.trim() || 'grade3_class1';
+        config.lessonId = document.getElementById('cfg-lessonId').value.trim() || 'U1L1';
+        config.intervalSec = parseInt(document.getElementById('cfg-interval').value) || 30;
+        document.getElementById('config-panel').classList.remove('open');
+        startPolling();
+        fetchNow();
+    }
+
+    // ===== 轮询 =====
+    function startPolling() {
+        if (pollTimer) { clearInterval(pollTimer); }
+        pollTimer = setInterval(fetchNow, config.intervalSec * 1000);
+    }
+
+    // ===== 初始化 =====
+    fetchNow();
+    startPolling();
+</script>
+</body>
+</html>

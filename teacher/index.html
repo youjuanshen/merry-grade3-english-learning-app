@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Merry英语 - 教师端</title>
+    <link rel="stylesheet" href="teacher.css?v=50">
+    <style>
+        body {
+            background-color: #f2f6fa;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Ambient Dynamic Background Orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: -1;
+            animation: orbFloat 25s infinite ease-in-out alternate;
+        }
+        .orb-1 {
+            width: 350px; height: 350px;
+            background: rgba(88, 204, 2, 0.35); /* Merry Green */
+            top: -100px; left: -100px;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: rgba(77, 196, 249, 0.25); /* Merry Blue */
+            bottom: -150px; right: -100px;
+            animation-delay: -7s;
+        }
+        .orb-3 {
+            width: 250px; height: 250px;
+            background: rgba(255, 185, 0, 0.2); /* Warm Yellow */
+            top: 40%; left: 40%;
+            animation-delay: -14s;
+        }
+
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(50px, -60px) scale(1.1) rotate(10deg); }
+            100% { transform: translate(-30px, 40px) scale(0.95) rotate(-5deg); }
+        }
+
+        .teacher-home-header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            color: #2c3e50;
+        }
+        .teacher-home-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            letter-spacing: 0.5px;
+        }
+        .teacher-home-header p {
+            font-size: 15px;
+            color: #5c6c7c;
+            margin: 0;
+            font-weight: 500;
+        }
+        .home-cards {
+            padding: 0 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .home-card {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 24px 22px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .home-card:active {
+            transform: scale(0.97) translateY(2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .home-card-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        .home-card-icon.blue {
+            background: linear-gradient(135deg, #f0f8ff, #d6eaff);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .home-card-icon.green {
+            background: linear-gradient(135deg, #f0fff0, #d4f5d4);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .home-card-text h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            color: #2c3e50;
+        }
+        .home-card-text p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .home-card-arrow {
+            margin-left: auto;
+            font-size: 24px;
+            color: #cbd5e1;
+            flex-shrink: 0;
+            transition: color 0.3s;
+        }
+        .home-card:active .home-card-arrow {
+            color: #94a3b8;
+        }
+        
+        /* Subtle vibrant accent bar on the left */
+        .home-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            border-radius: 20px 0 0 20px;
+        }
+        .home-card.card-blue::before {
+            background: linear-gradient(180deg, #4dc4f9, #1cb0f6);
+        }
+        .home-card.card-green::before {
+            background: linear-gradient(180deg, #58cc02, #46a302);
+        }
+        
+        .home-version {
+            text-align: center;
+            padding: 40px 0;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- 动态氛围背景 -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="teacher-home-header">
+        <h1>🎓 Merry英语 · 教师端</h1>
+        <p>智慧课堂控制中心</p>
+    </div>
+
+    <div class="home-cards">
+        <a href="prepare.html" class="home-card card-blue">
+            <div class="home-card-icon blue">📚</div>
+            <div class="home-card-text">
+                <h3>课前准备</h3>
+                <p>选择课程、设置模块</p>
+            </div>
+            <div class="home-card-arrow">›</div>
+        </a>
+
+        <a href="control.html" class="home-card card-green">
+            <div class="home-card-icon green">🎯</div>
+            <div class="home-card-text">
+                <h3>课中控制</h3>
+                <p>倒计时、进度监控、闯关赛</p>
+            </div>
+            <div class="home-card-arrow">›</div>
+        </a>
+    </div>
+
+    <div class="home-version">v2.0 · Merry English</div>
+</body>
+</html>

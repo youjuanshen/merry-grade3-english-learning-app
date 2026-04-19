@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theoretical Framework - Final Venn Diagram</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #fff;
+    padding: 30px 20px;
+    color: #1a1a1a;
+  }
+  .figure-wrapper {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+  .figure-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 22px;
+    line-height: 1.5;
+    color: #1a1a1a;
+  }
+
+  /* SC outer box */
+  .sc-box {
+    border: 3px solid #2e7d32;
+    background: #e8f5e9;
+    border-radius: 16px;
+    padding: 25px;
+    position: relative;
+  }
+  .sc-pill {
+    display: inline-block;
+    background: #2e7d32;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-bottom: 6px;
+  }
+  .sc-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1b5e20;
+    margin-bottom: 4px;
+  }
+  .sc-subtitle {
+    text-align: center;
+    font-size: 13px;
+    font-style: italic;
+    color: #388e3c;
+    margin-bottom: 16px;
+  }
+
+  /* ZPD inner box */
+  .zpd-box {
+    border: 2px dashed #1b5e20;
+    background: linear-gradient(135deg, rgba(232,245,233,0.6) 0%, rgba(200,230,201,0.4) 100%);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+  }
+  .zpd-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+    padding-right: 10px;
+  }
+  .zpd-pill {
+    display: inline-block;
+    background: #43a047;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 20px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .zpd-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1b5e20;
+  }
+  .zpd-subtitle {
+    font-size: 11px;
+    font-style: italic;
+    color: #388e3c;
+    margin-bottom: 4px;
+    padding-left: 2px;
+  }
+  .zpd-scaffolding {
+    font-size: 12px;
+    font-style: italic;
+    color: #1b5e20;
+    margin-bottom: 14px;
+    padding-left: 2px;
+  }
+
+  /* SE ring wrapper — sits inside ZPD, wraps the venn */
+  .se-ring-wrapper {
+    position: relative;
+    margin: 0 auto 14px auto;
+    width: fit-content;
+  }
+
+  /* SE glow container — no border, just a radial gradient background */
+  .se-glow-container {
+    position: relative;
+    padding: 36px 22px 20px 22px;
+    border-radius: 24px;
+    background: radial-gradient(ellipse at center, rgba(255,243,224,0.65) 0%, rgba(255,253,231,0.18) 60%, rgba(255,253,231,0.0) 100%);
+  }
+
+  .se-card {
+    display: inline-block;
+    background: rgba(255,243,224,0.5);
+    border: 1px solid rgba(245,127,23,0.2);
+    border-radius: 8px;
+    padding: 8px 15px;
+    text-align: center;
+    margin: 0 auto 10px auto;
+    display: block;
+  }
+  .se-card-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #f57f17;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+  }
+  .se-card-ref {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+  }
+  .se-card-desc {
+    font-size: 11px;
+    font-style: italic;
+    color: #f57f17;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+  }
+  .se-card-note {
+    font-size: 9px;
+    font-style: italic;
+    color: #aaa;
+    line-height: 1.5;
+  }
+
+  /* SVG venn */
+  .venn-svg-container {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Figure note */
+  .figure-note {
+    margin-top: 20px;
+    font-size: 12px;
+    font-style: italic;
+    color: #555;
+    line-height: 1.6;
+    border-top: 1px solid #ccc;
+    padding-top: 12px;
+  }
+
+  /* Print styles */
+  @media print {
+    body { padding: 15px; }
+    .figure-wrapper { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="figure-wrapper">
+
+  <p class="figure-title">Figure 1. Six-Theory Integrated Theoretical Framework for AI-Assisted Cooperative English Learning</p>
+
+  <!-- SC outer box -->
+  <div class="sc-box">
+    <div style="text-align:center; margin-bottom:4px;">
+      <span class="sc-pill">Epistemological Foundation</span>
+    </div>
+    <div class="sc-title">SC: Social Constructivism (Vygotsky, 1978)</div>
+    <div class="sc-subtitle">Knowledge co-constructed through cooperative interaction</div>
+
+    <!-- ZPD inner box -->
+    <div class="zpd-box">
+
+      <div class="zpd-header">
+            <span class="zpd-pill">Inherent SC Mechanism</span>
+            <span class="zpd-title" style="font-size:16px;font-weight:bold;color:#1b5e20;">ZPD: Zone of Proximal Development (Vygotsky)</span>
+          </div>
+          <div style="font-size:12px;font-style:italic;color:#1b5e20;margin-bottom:2px;padding-left:2px;">The distance between what learners can do independently and what they can achieve with guidance.</div>
+          <div style="font-size:11px;color:#1b5e20;margin-bottom:4px;padding-left:2px;">All activities are calibrated to fall within this range.</div>
+          <div style="margin-top:8px;margin-left:20px;font-size:12px;color:#1b5e20;margin-bottom:14px;">
+            <span style="font-size:14px;">└──</span> <strong>Scaffolding</strong> <span style="font-size:11px;color:#555;">(Wood et al., 1976)</span>
+            <div style="margin-left:30px;font-size:11px;margin-top:2px;">
+              L1: Peer negotiation &rarr; L2: Modified input &rarr; L3: Linguistic hints &rarr; L4: Multimodal support
+            </div>
+            <div style="margin-left:30px;font-size:10px;font-style:italic;color:#555;margin-top:1px;">
+              contingent &nbsp;&middot;&nbsp; temporary &nbsp;&middot;&nbsp; fades on success
+            </div>
+          </div>
+
+          <!-- SE glow + Venn -->
+          <div class="se-ring-wrapper">
+            <div class="se-glow-container">
+              <!-- SE card -->
+              <div class="se-card">
+                <div class="se-card-title">SE: Motivational Design Layer</div>
+                <div class="se-card-ref">Bandura, 1977</div>
+                <div class="se-card-desc">mastery experience &nbsp;&middot;&nbsp; vicarious experience</div>
+              </div>
+
+              <!-- SVG Venn Diagram -->
+              <div class="venn-svg-container">
+                <svg width="520" height="430" viewBox="0 0 520 430" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <!-- SLA blue -->
+                    <radialGradient id="gradSLA" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(21,101,192,0.18)"/>
+                      <stop offset="100%" stop-color="rgba(21,101,192,0.06)"/>
+                    </radialGradient>
+                    <!-- 3P orange -->
+                    <radialGradient id="grad3P" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(230,81,0,0.15)"/>
+                      <stop offset="100%" stop-color="rgba(230,81,0,0.05)"/>
+                    </radialGradient>
+                    <!-- CLT purple -->
+                    <radialGradient id="gradCLT" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(106,27,154,0.15)"/>
+                      <stop offset="100%" stop-color="rgba(106,27,154,0.05)"/>
+                    </radialGradient>
+                  </defs>
+
+                  <!-- SLA circle (blue, top-left) -->
+                  <circle cx="190" cy="175" r="115" fill="url(#gradSLA)" stroke="#1565c0" stroke-width="2"/>
+                  <!-- 3P circle (orange, top-right) -->
+                  <circle cx="330" cy="175" r="115" fill="url(#grad3P)" stroke="#e65100" stroke-width="2"/>
+                  <!-- CLT circle (purple, bottom-center) -->
+                  <circle cx="260" cy="290" r="115" fill="url(#gradCLT)" stroke="#6a1b9a" stroke-width="2"/>
+
+                  <!-- SLA: WHAT to learn label outside circle (top-left) -->
+                  <text x="82" y="48" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#1565c0">WHAT to learn</text>
+
+                  <!-- SLA circle inner text -->
+                  <text x="130" y="130" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="bold" fill="#1565c0">SLA</text>
+                  <text x="130" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1565c0">comprehensible input ·</text>
+                  <text x="130" y="163" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1565c0">interaction · pushed output</text>
+                  <text x="130" y="179" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-style="italic" fill="#888">Krashen · Long · Swain</text>
+
+                  <!-- 3P: HOW to organize label outside circle (top-right) -->
+                  <text x="438" y="48" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#e65100">HOW to organize</text>
+
+                  <!-- 3P circle inner text -->
+                  <text x="393" y="122" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="bold" fill="#e65100">3P</text>
+                  <text x="393" y="142" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#e65100">Play → Problem → Project</text>
+                  <text x="393" y="158" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-style="italic" fill="#888">recognition → application → creation</text>
+                  <text x="393" y="172" text-anchor="middle" font-family="Georgia,serif" font-size="9" font-style="italic" fill="#aaa">synthesized in this study</text>
+
+                  <!-- CLT: HOW to distribute label outside circle (bottom) -->
+                  <text x="260" y="415" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#6a1b9a">HOW to distribute</text>
+
+                  <!-- CLT circle inner text (non-overlapping bottom region) -->
+                  <text x="260" y="348" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="bold" fill="#6a1b9a">CLT</text>
+                  <text x="260" y="368" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#6a1b9a">reduce extraneous load</text>
+                  <text x="260" y="384" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#6a1b9a">through task distribution</text>
+                  <text x="260" y="400" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-style="italic" fill="#888">Sweller, 1988</text>
+
+                  <!-- Overlap labels -->
+                  <!-- SLA intersect 3P (top center) -->
+                  <text x="260" y="136" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">SLA processes embedded</text>
+                  <text x="260" y="148" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">in each 3P stage</text>
+
+                  <!-- SLA intersect CLT (bottom-left overlap) — moved inward to avoid circle edge -->
+                  <text x="195" y="248" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">Task split →</text>
+                  <text x="195" y="260" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">necessitates interaction</text>
+
+                  <!-- 3P intersect CLT (bottom-right overlap) — moved inward -->
+                  <text x="325" y="248" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">Load distributed</text>
+                  <text x="325" y="260" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#37474f">at every level</text>
+
+                  <!-- Center highlight circle -->
+                  <circle cx="260" cy="222" r="32" fill="rgba(255,235,59,0.55)" stroke="#f9a825" stroke-width="1.5"/>
+                  <text x="260" y="218" text-anchor="middle" font-family="Georgia,serif" font-size="9" font-weight="bold" fill="#5d4037">Every</text>
+                  <text x="260" y="230" text-anchor="middle" font-family="Georgia,serif" font-size="9" font-weight="bold" fill="#5d4037">Learning</text>
+                  <text x="260" y="242" text-anchor="middle" font-family="Georgia,serif" font-size="9" font-weight="bold" fill="#5d4037">Task</text>
+                </svg>
+              </div>
+
+            </div>
+          </div>
+    </div><!-- /ZPD box -->
+
+    <!-- AI Implementation Layer -->
+    <div style="margin-top: 16px; background: linear-gradient(135deg, rgba(66,66,66,0.08) 0%, rgba(66,66,66,0.03) 100%); border: 1px solid rgba(66,66,66,0.25); border-radius: 10px; padding: 10px 16px; display: flex; align-items: flex-start; gap: 12px;">
+      <div style="background: #424242; color: #fff; font-size: 11px; font-weight: bold; border-radius: 4px; padding: 3px 10px; white-space: nowrap; margin-top: 1px;">AI</div>
+      <div style="font-size: 11px; line-height: 1.6; color: #444;">
+        <strong style="color: #424242;">AI-Mediated Implementation</strong> — the technology layer that operationalizes the theoretical framework above.
+        <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+          <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(66,66,66,0.3); color: #424242; background: rgba(66,66,66,0.05);">TTS Audio Delivery</span>
+          <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(66,66,66,0.3); color: #424242; background: rgba(66,66,66,0.05);">SOE Oral Evaluation</span>
+          <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(66,66,66,0.3); color: #424242; background: rgba(66,66,66,0.05);">Adaptive i+1 Algorithm</span>
+          <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(66,66,66,0.3); color: #424242; background: rgba(66,66,66,0.05);">Scaffolding L2–L4 Logic</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /SC box -->
+
+  <!-- Figure note -->
+  <div class="figure-note" style="font-style:normal;">
+    <div style="margin-top:20px;font-size:11px;color:#666;line-height:2;">
+      <div><em>Note.</em></div>
+
+      <div style="margin-top:4px;"><span style="color:#2e7d32;font-weight:bold;">SC</span> = Social Constructivism (Vygotsky, 1978) — knowledge is constructed through social interaction, not transmitted from teacher to learner. In this study, SC provides the epistemological rationale for cooperative learning between two students sharing one device.</div>
+
+      <div style="margin-top:4px;"><span style="color:#1b5e20;font-weight:bold;">ZPD</span> = Zone of Proximal Development (Vygotsky, 1978) — the developmental distance between what a learner can do independently and what they can achieve with guidance. All learning activities in this app are calibrated to fall within this range.</div>
+
+      <div style="margin-left:14px;"><span style="color:#1b5e20;">Scaffolding</span> (Wood, Bruner, &amp; Ross, 1976) — contingent, temporary support that is gradually withdrawn as learner competence grows. Operationalized in four progressive levels: L1 Peer negotiation &rarr; L2 Modified input (e.g., slow replay) &rarr; L3 Linguistic hints (e.g., Chinese translation) &rarr; L4 Multimodal support. Each level is contingent on prior failure and fades on success.</div>
+
+      <div style="margin-top:4px;"><span style="color:#1565c0;font-weight:bold;">SLA</span> = Second Language Acquisition — three complementary principles guide language learning design: comprehensible input one step beyond current level (Krashen, 1985), negotiation of meaning through interaction (Long, 1996), and pushed output that prompts learners to notice gaps in their own language ability (Swain, 1985). Adopted as design heuristics; this study does not commit to the full theoretical position of any single hypothesis.</div>
+
+      <div style="margin-top:4px;"><span style="color:#e65100;font-weight:bold;">3P</span> = Play-based, Problem-based, and Project-based Learning (synthesized in this study from Hirsh-Pasek et al.; Barrows, 1986; Kilpatrick, 1918) — a progressive activity design moving from guided recognition (Play) through contextual application (Problem) to creative production (Project); cf. Gradual Release of Responsibility (Pearson &amp; Gallagher, 1983).</div>
+
+      <div style="margin-top:4px;"><span style="color:#6a1b9a;font-weight:bold;">CLT</span> = Cognitive Load Theory (Sweller, 1988) — learning is optimized when extraneous cognitive load is minimized. In this study, each task is split between Students A and B, reducing individual load while the sequential dependency (A acts first, B responds) necessitates interaction.</div>
+
+      <div style="margin-top:4px;"><span style="color:#f57f17;font-weight:bold;">SE</span> = Self-efficacy (Bandura, 1977) — an individual's belief in their capability to succeed at a given task, shaped by four sources: mastery experience, vicarious experience, verbal persuasion, and physiological states. This study centrally applies the first two: mastery experience through progressive task completion with mandatory error correction, and vicarious experience through shared-screen observation where Student B watches Student A perform.</div>
+
+      <div style="margin-top:8px;"><span style="font-weight:bold;color:#444;">AI</span> assistance operates at three levels: (1) <em>AI-powered development</em> — content, question banks, and adaptive logic designed with LLM assistance; (2) <em>AI-driven delivery</em> — text-to-speech synthesis (TTS) and spoken English oral evaluation (SOE) powered by cloud-based AI services; (3) <em>AI-informed adaptation</em> — rule-based algorithm implementing i+1 difficulty adjustment and scaffold triggering logic, designed with AI assistance. Activity flow and A/B task distribution are pre-programmed design decisions, not AI-driven processes.</div>
+
+      <div style="margin-top:10px;">This framework is grounded in <span style="color:#2e7d32;font-weight:bold;">SC</span> as its epistemological foundation, with <span style="color:#1b5e20;font-weight:bold;">ZPD</span> defining the developmental space in which all design mechanisms operate. Within ZPD, three intertwined mechanisms work simultaneously in every learning task: <span style="color:#1565c0;font-weight:bold;">SLA</span> guides the language learning principles, <span style="color:#e65100;font-weight:bold;">3P</span> organizes how activities progress from guided to independent, and <span style="color:#6a1b9a;font-weight:bold;">CLT</span> regulates how cognitive demands are distributed between two learners. <span style="color:#f57f17;font-weight:bold;">SE</span> operates as a cross-cutting motivational design layer, ensuring that task completion fosters learners' belief in their own capabilities.</div>
+    </div>
+  </div>
+
+</div><!-- /figure-wrapper -->
+</body>
+</html>

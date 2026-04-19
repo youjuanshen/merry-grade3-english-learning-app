@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figure 2. Theory Activation Matrix (v4)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #fff;
+    padding: 24px 16px;
+    color: #1a1a1a;
+  }
+  .figure-wrapper {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .figure-title {
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 3px;
+    line-height: 1.5;
+  }
+  .figure-subtitle {
+    text-align: center;
+    font-size: 11px;
+    font-style: italic;
+    color: #666;
+    margin-bottom: 12px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+    font-size: 10.5px;
+    color: #333;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .legend-swatch {
+    width: 22px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: bold;
+  }
+  .sw-pri { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+  .sw-sec { background: #f5f5f5; border-color: #ddd; color: #999; }
+  .sw-ina { background: #fafafa; border-color: #eee; color: #ccc; }
+
+  /* 3P Context Banner */
+  .ctx-banner {
+    background: linear-gradient(135deg, rgba(230,81,0,0.06) 0%, rgba(230,81,0,0.02) 100%);
+    border: 1px solid rgba(230,81,0,0.25);
+    border-radius: 8px;
+    padding: 9px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .ctx-label {
+    background: #e65100;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    padding: 3px 10px;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+  .ctx-body {
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #444;
+  }
+  .ctx-body strong { color: #e65100; }
+  .ctx-chips {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+  }
+  .ctx-chips .chip {
+    font-size: 9.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(230,81,0,0.3);
+    color: #e65100;
+    background: rgba(230,81,0,0.05);
+  }
+  .chip.current {
+    background: #e65100;
+    color: #fff;
+    font-weight: bold;
+    border-color: #e65100;
+  }
+
+  /* Matrix */
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    line-height: 1.4;
+    table-layout: fixed;
+  }
+  table.matrix th,
+  table.matrix td {
+    border: 1px solid #ccc;
+    padding: 6px 7px;
+    vertical-align: top;
+  }
+  col.col-theory { width: 13%; }
+  col.col-phase { width: 21.75%; }
+
+  /* Phase header */
+  tr.phase-hdr th {
+    background: #37474f;
+    color: #fff;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 8px 5px;
+    vertical-align: middle;
+  }
+  tr.phase-hdr th.corner {
+    background: #455a64;
+    font-size: 10px;
+  }
+  .ph-num { display: block; font-size: 9px; font-weight: normal; opacity: 0.8; margin-bottom: 1px; }
+  .ph-desc { display: block; font-size: 8.5px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
+
+  /* Theory label */
+  td.t-label {
+    border-left-width: 4px;
+    background: #f9f9f9;
+    padding: 5px 6px;
+    vertical-align: middle;
+  }
+  .t-name { font-weight: bold; font-size: 12px; display: block; margin-bottom: 1px; }
+  .t-ref { font-size: 8.5px; color: #888; font-style: italic; display: block; }
+
+  /* PRIMARY cell */
+  td.cp {
+    vertical-align: top;
+    padding: 5px 6px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 7.5px;
+    font-weight: bold;
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .cp .ct { font-weight: bold; font-size: 10.5px; color: #1a1a1a; display: block; margin-bottom: 2px; }
+  .cp .cd { font-size: 10px; color: #444; line-height: 1.35; }
+  .cp img.thumb {
+    display: block;
+    max-width: 90px;
+    margin: 4px auto 4px auto;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+
+  /* SECONDARY cell */
+  td.cs {
+    vertical-align: top;
+    padding: 5px 6px;
+  }
+  .s-tag {
+    display: inline-block;
+    font-size: 7.5px;
+    font-weight: bold;
+    color: #888;
+    background: #eee;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .cs .cd { font-size: 9.5px; color: #666; font-style: italic; line-height: 1.35; }
+  .cs img.thumb {
+    display: block;
+    max-width: 70px;
+    margin: 3px auto 3px auto;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    opacity: 0.8;
+  }
+
+  /* INACTIVE cell */
+  td.ci {
+    text-align: center;
+    vertical-align: middle;
+    background: #f7f7f7;
+    color: #ccc;
+    font-size: 16px;
+  }
+
+  /* Colors */
+  .bg1 { background: rgba(46,125,50,0.07); }
+  .bg2 { background: rgba(21,101,192,0.07); }
+  .bg3 { background: rgba(106,27,154,0.07); }
+  .bg4 { background: rgba(27,94,32,0.07); }
+  .bg5 { background: rgba(245,127,23,0.07); }
+  .bs1 { background: rgba(46,125,50,0.025); }
+  .bs2 { background: rgba(21,101,192,0.025); }
+  .bs3 { background: rgba(106,27,154,0.025); }
+  .bs4 { background: rgba(27,94,32,0.025); }
+  .bs5 { background: rgba(245,127,23,0.025); }
+
+  .bl1 { border-left-color: #2e7d32 !important; }
+  .bl2 { border-left-color: #1565c0 !important; }
+  .bl3 { border-left-color: #6a1b9a !important; }
+  .bl4 { border-left-color: #1b5e20 !important; }
+  .bl5 { border-left-color: #f57f17 !important; }
+
+  .tg1 { background: #2e7d32; }
+  .tg2 { background: #1565c0; }
+  .tg3 { background: #6a1b9a; }
+  .tg4 { background: #1b5e20; }
+  .tg5 { background: #f57f17; }
+
+  /* Integration Points */
+  .int-section {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fffde7;
+    border: 1px solid #f9e04b;
+    border-left: 4px solid #f9a825;
+    border-radius: 4px;
+  }
+  .int-section h4 {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e65100;
+    margin-bottom: 7px;
+  }
+  .int-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  .int-card {
+    background: #fff;
+    border: 1px solid #f0e68c;
+    border-radius: 5px;
+    padding: 6px 9px;
+    font-size: 9.5px;
+    line-height: 1.45;
+  }
+  .int-card .int-title { font-weight: bold; color: #333; margin-bottom: 2px; }
+  .int-card .ph-ref {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: bold;
+    color: #fff;
+    background: #37474f;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .int-card .int-desc { color: #555; }
+  .int-card .int-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; }
+  .int-card .tc {
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  /* Figure note */
+  .fig-note {
+    margin-top: 12px;
+    font-size: 9.5px;
+    line-height: 1.6;
+    color: #555;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+  }
+  .fig-note p { margin-bottom: 4px; }
+  .nl { font-style: italic; font-weight: bold; color: #333; }
+
+  @media print {
+    body { padding: 10px 8px; font-size: 9px; }
+    .figure-wrapper { max-width: 100%; }
+    table.matrix { font-size: 9px; }
+    .cp img.thumb { max-width: 70px; }
+    .cs img.thumb { max-width: 55px; }
+  }
+</style>
+</head>
+<body>
+<div class="figure-wrapper">
+
+<div class="figure-title">Figure 2. How Six Theories Work Together in One Cooperative Question (~30 sec)</div>
+<div class="figure-subtitle">Example: Listening Relay — Station 1, Play Level</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch sw-pri">P</div><strong>Primary</strong> &mdash; directly at work</div>
+  <div class="legend-item"><div class="legend-swatch sw-sec">S</div><strong>Secondary</strong> &mdash; on standby; activated when needed</div>
+  <div class="legend-item"><div class="legend-swatch sw-ina">&mdash;</div><strong>Inactive</strong> &mdash; not involved</div>
+</div>
+
+<!-- 3P Context Banner -->
+<div class="ctx-banner">
+  <div class="ctx-label">3P</div>
+  <div class="ctx-body">
+    <strong>3P is the big picture</strong> &mdash; it organizes all activities into three progressive levels. This table zooms into one <strong>Play-level question</strong> to show how the other five theories work together in ~30 seconds.
+    <div class="ctx-chips">
+      <span class="chip current">&#9658; Play (St. 1&ndash;3): learn words through games</span>
+      <span class="chip">Problem (St. 4): apply words in context</span>
+      <span class="chip">Project (unit end): create together</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MATRIX ===== -->
+<table class="matrix">
+<colgroup>
+  <col class="col-theory">
+  <col class="col-phase">
+  <col class="col-phase">
+  <col class="col-phase">
+  <col class="col-phase">
+</colgroup>
+
+<tr class="phase-hdr">
+  <th class="corner">Theory</th>
+  <th><span class="ph-num">Phase 1</span><strong>Setup</strong><span class="ph-desc">Teacher config + pairing</span></th>
+  <th><span class="ph-num">Phase 2</span><strong>Interaction</strong><span class="ph-desc">Student A + Student B</span></th>
+  <th><span class="ph-num">Phase 3</span><strong>Support</strong><span class="ph-desc">Scaffolding L1&ndash;L4</span></th>
+  <th><span class="ph-num">Phase 4</span><strong>Feedback</strong><span class="ph-desc">Mastery + adaptation</span></th>
+</tr>
+
+<!-- ===== SC ===== -->
+<tr>
+  <td class="t-label bl1">
+    <span class="t-name" style="color:#2e7d32;">SC</span>
+    <span class="t-ref">Vygotsky, 1978</span>
+  </td>
+  <!-- SC P1: PRIMARY -->
+  <td class="cp bg1">
+    <span class="tag tg1">Primary</span>
+    <img src="fig2_phase1_setup.png" class="thumb" alt="Pair selection">
+    <span class="ct">Cooperative structure set</span>
+    <span class="cd">Teacher activates lesson; app enforces A/B pairing on shared device &mdash; cooperation built into the structure</span>
+  </td>
+  <!-- SC P2: PRIMARY -->
+  <td class="cp bg1">
+    <span class="tag tg1">Primary</span>
+    <img src="fig2_phase3_studentB.png" class="thumb" alt="B receives A's result">
+    <span class="ct">Sequential dependency</span>
+    <span class="cd">A&rsquo;s result &rarr; B; neither can complete alone. B&rsquo;s task activates only after A submits.</span>
+  </td>
+  <!-- SC P3: SECONDARY -->
+  <td class="cs bs1">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_scaffold_L1.png" class="thumb" alt="L1 peer scaffold">
+    <span class="cd">Peer as first resource &mdash; L1 scaffold triggers cooperative discussion before system help</span>
+  </td>
+  <!-- SC P4: SECONDARY -->
+  <td class="cs bs1">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_correct_feedback.png" class="thumb" alt="Both A and B answered correctly">
+    <span class="cd">Shared outcome &mdash; both A and B must answer correctly to advance; success is co-constructed</span>
+  </td>
+</tr>
+
+<!-- ===== SLA ===== -->
+<tr>
+  <td class="t-label bl2">
+    <span class="t-name" style="color:#1565c0;">SLA</span>
+    <span class="t-ref">Krashen; Long; Swain</span>
+  </td>
+  <!-- SLA P1: INACTIVE -->
+  <td class="ci">&mdash;</td>
+  <!-- SLA P2: PRIMARY -->
+  <td class="cp bg2">
+    <span class="tag tg2">Primary</span>
+    <img src="fig2_phase3_studentA.png" class="thumb" alt="A listens and selects image">
+    <span class="ct">Input + interaction</span>
+    <span class="cd">Audio at i+1 level (Krashen); A/B split necessitates negotiation of meaning (Long); B must produce a response based on A&rsquo;s result &mdash; pushed output reveals gaps (Swain)</span>
+  </td>
+  <!-- SLA P3: SECONDARY -->
+  <td class="cs bs2">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_scaffold_L2_correct.png" class="thumb" alt="L2 slow replay scaffold">
+    <span class="cd">Modified input via scaffold &mdash; L2 slow replay and L3 Chinese hint operationalize SLA principles</span>
+  </td>
+  <!-- SLA P4: PRIMARY -->
+  <td class="cp bg2">
+    <span class="tag tg2">Primary</span>
+    <img src="fig2_practice_phase.png" class="thumb" alt="Error correction loop">
+    <span class="ct">Adaptive i+1 progression</span>
+    <span class="cd">Previously wrong questions must be re-answered. Correct &rarr; harder; wrong &rarr; easier.</span>
+  </td>
+</tr>
+
+<!-- ===== CLT ===== -->
+<tr>
+  <td class="t-label bl3">
+    <span class="t-name" style="color:#6a1b9a;">CLT</span>
+    <span class="t-ref">Sweller, 1988</span>
+  </td>
+  <!-- CLT P1: PRIMARY -->
+  <td class="cp bg3">
+    <span class="tag tg3">Primary</span>
+    <img src="fig2_teacher_prepare.png" class="thumb" alt="Teacher dashboard">
+    <span class="ct">Extraneous load removed</span>
+    <span class="cd">Teacher pre-selects lesson &amp; module; students make zero navigation decisions</span>
+  </td>
+  <!-- CLT P2: PRIMARY -->
+  <td class="cp bg3">
+    <span class="tag tg3">Primary</span>
+    <img src="fig2_clt_task_dist.png" class="thumb" alt="A sees audio+images, B sees text+meaning">
+    <span class="ct">Task distribution</span>
+    <span class="cd">A: audio + images only, no text. B: text + meaning only, no audio. Each learner&rsquo;s cognitive load halved through modality split.</span>
+  </td>
+  <!-- CLT P3: SECONDARY -->
+  <td class="cs bs3">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_scaffold_L3_hint.png" class="thumb" alt="L3 hint aids schema formation">
+    <span class="cd">Germane load &mdash; scaffold hints aid schema formation without adding extraneous load</span>
+  </td>
+  <!-- CLT P4: SECONDARY -->
+  <td class="cs bs3">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_practice_phase.png" class="thumb" alt="Error correction adjusts cognitive load">
+    <span class="cd">Intrinsic load adjusted &mdash; adaptive difficulty maintains load within manageable range</span>
+  </td>
+</tr>
+
+<!-- ===== ZPD ===== -->
+<tr>
+  <td class="t-label bl4">
+    <span class="t-name" style="color:#1b5e20;">ZPD</span>
+    <span class="t-ref">Vygotsky; Wood et al., 1976</span>
+    <span class="t-ref" style="color:#2e7d32;">(inherent SC mechanism)</span>
+  </td>
+  <!-- ZPD P1: INACTIVE -->
+  <td class="ci">&mdash;</td>
+  <!-- ZPD P2: SECONDARY -->
+  <td class="cs bs4">
+    <span class="s-tag">Secondary</span>
+    <img src="fig2_scaffold_jinang.png" class="thumb" alt="Hint bags on standby">
+    <span class="cd">Task calibrated within ZPD; scaffolds on standby &mdash; hint bags available if needed</span>
+  </td>
+  <!-- ZPD P3: PRIMARY -->
+  <td class="cp bg4">
+    <span class="tag tg4">Primary</span>
+    <img src="fig2_scaffold_L3_hint.png" class="thumb" alt="L3 Chinese hint scaffold">
+    <span class="ct">Contingent scaffolding</span>
+    <span class="cd">L1 peer &rarr; L2 slow replay &rarr; L3 Chinese hint &rarr; L4 multimodal. Progressive, contingent, fades on success.</span>
+  </td>
+  <!-- ZPD P4: PRIMARY -->
+  <td class="cp bg4">
+    <span class="tag tg4">Primary</span>
+    <img src="fig2_phase2_map.png" class="thumb" alt="Adventure map showing station progression">
+    <span class="ct">ZPD recalibration</span>
+    <span class="cd">Algorithm adjusts next station difficulty based on scaffold usage and accuracy.</span>
+  </td>
+</tr>
+
+<!-- ===== SE ===== -->
+<tr>
+  <td class="t-label bl5">
+    <span class="t-name" style="color:#f57f17;">SE</span>
+    <span class="t-ref">Bandura, 1977</span>
+  </td>
+  <!-- SE P1: INACTIVE -->
+  <td class="ci">&mdash;</td>
+  <!-- SE P2: PRIMARY -->
+  <td class="cp bg5">
+    <span class="tag tg5">Primary</span>
+    <img src="fig2_se_vicarious.png" class="thumb" alt="B watches A perform on shared screen">
+    <span class="ct">Vicarious experience</span>
+    <span class="cd">B watches A perform on shared screen &mdash; Bandura&rsquo;s 2nd strongest SE source. &ldquo;A peer like me can do it&rdquo; builds efficacy belief.</span>
+  </td>
+  <!-- SE P3: PRIMARY -->
+  <td class="cp bg5">
+    <span class="tag tg5">Primary</span>
+    <img src="fig2_wrong_retry.png" class="thumb" alt="Encouragement after error">
+    <span class="ct">Failure protection</span>
+    <span class="cd">Scaffold prevents repeated failure; &ldquo;That&rsquo;s OK, try again!&rdquo; preserves self-efficacy.</span>
+  </td>
+  <!-- SE P4: PRIMARY -->
+  <td class="cp bg5">
+    <span class="tag tg5">Primary</span>
+    <img src="fig2_stars_mastery.png" class="thumb" alt="Mastery completion screen">
+    <span class="ct">Mastery experience</span>
+    <span class="cd">100% + trophy = genuine mastery (Bandura). A &harr; B swap = both experience success as &ldquo;doer.&rdquo;</span>
+  </td>
+</tr>
+
+</table>
+
+<!-- ===== AI IMPLEMENTATION LAYER ===== -->
+<div style="margin-top: 10px; background: linear-gradient(135deg, rgba(66,66,66,0.06) 0%, rgba(66,66,66,0.02) 100%); border: 1px solid rgba(66,66,66,0.25); border-radius: 8px; padding: 8px 12px;">
+  <div style="display: flex; align-items: flex-start; gap: 10px;">
+    <div style="background: #424242; color: #fff; font-size: 11px; font-weight: bold; border-radius: 4px; padding: 3px 10px; white-space: nowrap; margin-top: 1px;">AI</div>
+    <div style="font-size: 10.5px; line-height: 1.5; color: #444;">
+      <strong style="color: #424242;">AI mediates the theoretical design above</strong> &mdash; it is the technology layer, not a theory itself.
+      <table style="width: 100%; margin-top: 6px; font-size: 9.5px; border-collapse: collapse;">
+        <tr>
+          <td style="width: 13%; color: #999; font-size: 9px; vertical-align: top; padding: 3px 4px;"></td>
+          <td style="width: 21.75%; padding: 3px 6px; color: #999; text-align: center; vertical-align: top;">&mdash;</td>
+          <td style="width: 21.75%; padding: 3px 6px; vertical-align: top; background: rgba(66,66,66,0.04); border-radius: 4px;">
+            <strong style="color: #424242;">TTS</strong> audio delivery<br>
+            <span style="color: #888;">Adaptive question selection</span>
+          </td>
+          <td style="width: 21.75%; padding: 3px 6px; vertical-align: top; background: rgba(66,66,66,0.04); border-radius: 4px;">
+            <strong style="color: #424242;">L2&ndash;L4</strong> scaffold logic<br>
+            <span style="color: #888;">AI-driven hint triggers</span>
+          </td>
+          <td style="width: 21.75%; padding: 3px 6px; vertical-align: top; background: rgba(66,66,66,0.04); border-radius: 4px;">
+            <strong style="color: #424242;">Adaptive algorithm</strong><br>
+            <span style="color: #888;">i+1 difficulty adjustment</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INTEGRATION POINTS ===== -->
+<div class="int-section">
+  <h4>Theory Integration Points &mdash; One Design Decision, Multiple Theories</h4>
+  <div class="int-grid">
+    <div class="int-card">
+      <div class="int-title">1. A/B task split on shared device<span class="ph-ref">Phase 1–2</span></div>
+      <div class="int-desc">Splitting the task between two students on one screen simultaneously reduces cognitive load, enforces cooperation, and creates vicarious observation.</div>
+      <div class="int-tags">
+        <span class="tc" style="background:#6a1b9a;">CLT</span>
+        <span class="tc" style="background:#2e7d32;">SC</span>
+        <span class="tc" style="background:#f57f17;">SE</span>
+      </div>
+    </div>
+    <div class="int-card">
+      <div class="int-title">2. Contingent scaffolding (L1&rarr;L4)<span class="ph-ref">Phase 3</span></div>
+      <div class="int-desc">Scaffold begins with peer discussion (SC), provides modified input (SLA), protects self-efficacy (SE), all triggered within the ZPD.</div>
+      <div class="int-tags">
+        <span class="tc" style="background:#1b5e20;">ZPD</span>
+        <span class="tc" style="background:#2e7d32;">SC</span>
+        <span class="tc" style="background:#1565c0;">SLA</span>
+        <span class="tc" style="background:#f57f17;">SE</span>
+      </div>
+    </div>
+    <div class="int-card">
+      <div class="int-title">3. Adaptive difficulty algorithm<span class="ph-ref">Phase 4</span></div>
+      <div class="int-desc">One algorithm maintains optimal i+1 input (SLA), recalibrates the ZPD boundary, and balances intrinsic cognitive load (CLT).</div>
+      <div class="int-tags">
+        <span class="tc" style="background:#1565c0;">SLA</span>
+        <span class="tc" style="background:#1b5e20;">ZPD</span>
+        <span class="tc" style="background:#6a1b9a;">CLT</span>
+      </div>
+    </div>
+    <div class="int-card">
+      <div class="int-title">4. Mandatory error correction + stars<span class="ph-ref">Phase 4</span></div>
+      <div class="int-desc">Requiring correct answers before progression creates genuine mastery (SE), closes the SLA feedback loop, and confirms ZPD calibration.</div>
+      <div class="int-tags">
+        <span class="tc" style="background:#f57f17;">SE</span>
+        <span class="tc" style="background:#1565c0;">SLA</span>
+        <span class="tc" style="background:#1b5e20;">ZPD</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FIGURE NOTE ===== -->
+<div class="fig-note">
+  <p><span class="nl">Note.</span> This matrix maps the activation of five micro-level theories from the conceptual framework (Figure 1) across four phases of one cooperative question (~30 seconds). The sixth theory, <strong style="color:#e65100;">3P</strong> (Play &rarr; Problem &rarr; Project), operates at the station/unit level: it determines the <em>type</em> of activity before the interaction cycle begins, and the five theories below operate <em>within</em> each 3P level. The exemplar is <em>coop_listen_relay</em> (Listening Module, Station 1, Play level): two students share one iPhone; Student A and Student B take sequential turns on the same screen.</p>
+
+  <p><strong>Activation levels.</strong> <em>Primary</em> = the theory is a main design driver, with concrete design behaviors directly embodying it. <em>Secondary</em> = indirectly present or on standby (e.g., scaffolds available but not yet triggered). <em>Inactive</em> = no observable design behavior implements this theory. Phase 1 (Setup) is a pre-task configuration phase; learning theories naturally activate once interaction begins in Phase 2.</p>
+
+  <p><strong style="color:#2e7d32;">SC</strong> = Social Constructivism (Vygotsky, 1978) &mdash; the epistemological foundation of this framework;
+  <strong style="color:#1565c0;">SLA</strong> = Second Language Acquisition (Krashen, 1985; Long, 1996; Swain, 1985);
+  <strong style="color:#e65100;">3P</strong> = Play / Problem / Project-based Learning (synthesized in this study);
+  <strong style="color:#6a1b9a;">CLT</strong> = Cognitive Load Theory (Sweller, 1988);
+  <strong style="color:#1b5e20;">ZPD</strong> = Zone of Proximal Development + Scaffolding (Vygotsky, 1978; Wood et al., 1976) &mdash; an inherent mechanism within SC, separated here for analytical clarity;
+  <strong style="color:#f57f17;">SE</strong> = Self-efficacy (Bandura, 1977).
+  Scaffolding: L1 Peer negotiation &rarr; L2 Modified input (slow replay) &rarr; L3 Linguistic cue (Chinese hint) &rarr; L4 Multimodal support. Contingent, progressive, fades on success.</p>
+</div>
+
+</div>
+</body>
+</html>

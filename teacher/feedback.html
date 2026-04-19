@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课后反馈 - Merry英语</title>
+    <link rel="stylesheet" href="teacher.css?v=50">
+    <style>
+        .obs-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .obs-table th, .obs-table td { border: 1px solid #eee; padding: 8px; text-align: center; }
+        .obs-table th { background: var(--teacher-bg); font-weight: 500; font-size: 14px; }
+        .obs-table input[type="radio"] { width: 18px; height: 18px; }
+        .tab-btn { padding: 10px; border: none; background: transparent; font-size: 16px; font-weight: bold; cursor: pointer; color: var(--teacher-text-light); flex: 1; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--teacher-warning); border-bottom-color: var(--teacher-warning); }
+    </style>
+</head>
+<body data-page="feedback" style="background-color: var(--teacher-warning);">
+    <div class="top-nav" style="background-color: var(--teacher-warning); box-shadow: none;">
+        <a href="index.html" class="back-btn">← 返回</a>
+        <h1>📝 课后反馈</h1>
+    </div>
+    
+    <div class="teacher-view" style="padding-top: 0; background: var(--teacher-bg);">
+        
+        <div style="display: flex; background: white; margin-bottom: 15px;">
+            <button class="tab-btn active" onclick="switchTab('obs')">观察记录</button>
+            <button class="tab-btn" onclick="switchTab('ai')">AI分析报告</button>
+        </div>
+
+        <div id="tab-obs">
+            <div class="teacher-card">
+                <h3 class="card-title">📝 课堂观察评估表（自我效能感四维度）</h3>
+                <p style="font-size: 13px; color: var(--teacher-text-light); margin-top: -5px; margin-bottom: 10px;">
+                    评分标准：0=没做到 | 1=偶尔做到(1-2次) | 2=经常做到(3次以上)
+                </p>
+
+                <div style="overflow-x: auto;">
+                    <table class="obs-table" style="font-size: 13px;">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 60px;">姓名</th>
+                                <th style="min-width: 80px;">掌握经验<br><small style="font-weight:normal;color:#999;">任务开始与持续</small></th>
+                                <th style="min-width: 80px;">替代经验<br><small style="font-weight:normal;color:#999;">对示范的反应</small></th>
+                                <th style="min-width: 80px;">社交劝导<br><small style="font-weight:normal;color:#999;">对鼓励的反应</small></th>
+                                <th style="min-width: 80px;">情绪状态<br><small style="font-weight:normal;color:#999;">放松与专注</small></th>
+                            </tr>
+                        </thead>
+                        <tbody id="obs-tbody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <textarea class="select-input" placeholder="其他补充记录（如特殊表现、请假情况等）..." style="height: 80px; resize: none; margin-bottom: 15px;"></textarea>
+                <button class="teacher-btn btn-warning" style="width: 100%; color: white;" onclick="saveObservation()">保存记录</button>
+            </div>
+        </div>
+
+        <div id="tab-ai" style="display: none;">
+            <div class="teacher-card">
+                <h3 class="card-title">🤖 AI课堂反馈报告</h3>
+                <div style="color: var(--teacher-text-light); font-size: 14px; margin-bottom: 15px;">
+                    日期：<span id="report-date">2026-03-14</span>
+                </div>
+                
+                <div style="background: #fff5eb; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin:0 0 10px 0; color:var(--teacher-warning);">💡 总体简评</h4>
+                    <p style="margin:0; font-size: 15px; line-height: 1.5;">本节课全班参与度较高，模块平均完成率 <strong>92%</strong>。<br>
+                    <strong>进步亮点：</strong>张佳寒组在阅读配对环节速度提升明显。<br>
+                    <strong>需要注意：</strong>口语环节整体音量较小，需鼓励大声朗读。</p>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>本节课得分榜 (Top 3)</strong>
+                    <ul class="info-list" id="score-ranking-list" style="margin-top: 5px; color: var(--teacher-success);">
+                        <li>张宇豪 & 张佳寒：⭐ 24</li>
+                        <li>张睿渊 & 张羽韬：⭐ 21</li>
+                        <li>张美茹 & 张嘉钦：⭐ 18</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>📉 高频错题统计</strong>
+                    <ul class="info-list" id="error-stats-list" style="margin-top: 5px; color: var(--teacher-danger);">
+                        <li>单词拼写 (horse) - 错误率 45%</li>
+                        <li>听句子选图 (That is a horse.) - 错误率 30%</li>
+                    </ul>
+                </div>
+
+                <strong>📈 模块掌握度趋势</strong>
+                <div style="height: 120px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 20px; border-bottom: 1px solid #eee; margin-top: 10px; margin-bottom: 15px;">
+                    <div style="width: 20%; background: var(--teacher-success); height: 90%; text-align: center; color: white; font-size: 12px; border-radius: 4px 4px 0 0;">听力 90%</div>
+                    <div style="width: 20%; background: var(--teacher-primary); height: 75%; text-align: center; color: white; font-size: 12px; border-radius: 4px 4px 0 0;">阅读 75%</div>
+                    <div style="width: 20%; background: var(--teacher-warning); height: 60%; text-align: center; color: white; font-size: 12px; border-radius: 4px 4px 0 0;">写作 60%</div>
+                    <div style="width: 20%; background: var(--teacher-danger); height: 45%; text-align: center; color: white; font-size: 12px; border-radius: 4px 4px 0 0;">口语 45%</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>⚠️ 困难预警名单</strong>
+                    <ul class="info-list" style="margin-top: 5px;">
+                        <li><span style="color:var(--teacher-danger)">张睿渊</span>：听力判断对错错误率达 40%</li>
+                        <li><span style="color:var(--teacher-danger)">张依彤</span>：写作拖拽连线未按时完成</li>
+                    </ul>
+                </div>
+
+                <button class="teacher-btn btn-outline" style="width: 100%; border-color: var(--teacher-warning); color: var(--teacher-warning);">重新生成深度报告</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="../firebase-sync.js?v=50"></script>
+    <script src="data.js?v=50"></script>
+    <script src="teacher.js?v=51"></script>
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#tab-obs, #tab-ai').forEach(el => el.style.display = 'none');
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        function initFeedbackPage() {
+            // Document date
+            document.getElementById('report-date').textContent = new Date().toLocaleDateString('zh-CN');
+
+            // Populate observation table with self-efficacy dimensions
+            const group = getTodayObservationGroup();
+            const tbody = document.getElementById('obs-tbody');
+            tbody.innerHTML = group.map(s => `
+                <tr>
+                    <td style="font-weight:bold;">${s.name}</td>
+                    <td>
+                        <select style="width:50px;padding:4px;">
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="0">0</option>
+                            <option value="na">N/A</option>
+                            <option value="absent">假</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select style="width:50px;padding:4px;">
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="0">0</option>
+                            <option value="na">N/A</option>
+                            <option value="absent">假</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select style="width:50px;padding:4px;">
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="0">0</option>
+                            <option value="na">N/A</option>
+                            <option value="absent">假</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select style="width:50px;padding:4px;">
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="0">0</option>
+                            <option value="na">N/A</option>
+                            <option value="absent">假</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function saveObservation() {
+            alert('观察记录已保存！数据将同步到Google表单。');
+        }
+    </script>
+</body>
+</html>

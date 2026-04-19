@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Merry英语">
+  <meta name="theme-color" content="#58cc02">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <title>Merry English</title>
+  <link rel="stylesheet" href="style.css?v=120">
+</head>
+<body>
+  <div id="app">
+    <!-- Welcome Screen - 简洁大气 -->
+    <div id="welcome-screen" class="screen active">
+      <div class="welcome-bg-decor">
+        <span class="welcome-float-emoji" style="top:8%;left:10%;animation-delay:0s;">🌟</span>
+        <span class="welcome-float-emoji" style="top:15%;right:12%;animation-delay:0.5s;">📚</span>
+        <span class="welcome-float-emoji" style="bottom:18%;left:8%;animation-delay:1s;">✨</span>
+        <span class="welcome-float-emoji" style="bottom:12%;right:10%;animation-delay:1.5s;">🎓</span>
+        <span class="welcome-float-emoji" style="top:40%;left:5%;animation-delay:0.8s;">🔤</span>
+        <span class="welcome-float-emoji" style="top:35%;right:5%;animation-delay:1.2s;">⭐</span>
+      </div>
+      <div class="welcome-content-enhanced">
+        <img src="assets/images/welcome_hero.png" class="welcome-hero-img" alt="kids learning" />
+        <h1 class="welcome-app-name">Merry English</h1>
+        <p class="welcome-tagline">🎉 英语乐园 · 快乐学习</p>
+        <button class="welcome-start-btn" id="welcome-start-btn">🎵 点击开始</button>
+        <p class="welcome-countdown-enhanced" id="countdown" style="display:none;">3</p>
+      </div>
+    </div>
+
+    <!-- Login Screen: Step 1 - Select Students -->
+    <div id="login-screen" class="screen">
+      <!-- Added Course Info Display -->
+      <div class="course-info-display" id="course-info-display" style="display:none;">
+        <span id="display-lesson-title">🐻 Unit 1 动物 Lesson 1</span> · <span id="display-module-title">听力</span>
+      </div>
+
+      <h1 class="login-title">选择你们的名字</h1>
+      <p class="swipe-hint">左右滑动查看更多同学</p>
+
+      <div class="student-pages-container" id="student-pages">
+        <!-- JS will populate with pages -->
+      </div>
+      <div class="page-dots" id="page-dots">
+        <!-- JS will populate -->
+      </div>
+
+      <div class="selected-students-display">
+        <p>已选择：<span id="selected-names">______ 和 ______</span></p>
+      </div>
+
+      <button id="next-btn" class="primary-btn start-btn" disabled>开始学习</button>
+
+      <!-- 游戏化按钮暂时隐藏，等核心功能跑通+师生通信搭好后再启用 -->
+      <div class="top-buttons" style="display:none;">
+        <button id="pet-btn" class="pet-btn">🐣 宠物</button>
+        <button id="map-btn" class="map-btn">🗺️ 地图</button>
+        <button id="quests-btn" class="quests-btn">📋 任务</button>
+        <button id="achievements-btn" class="achievements-btn">🏆 成就</button>
+      </div>
+
+      <!-- Daily Quests Panel (collapsible) -->
+      <div id="daily-quests-container" style="display:none;"></div>
+    </div>
+
+    <!-- Achievements Screen -->
+    <div id="achievements-screen" class="screen">
+      <div class="achievements-header">
+        <button id="back-to-login" class="back-btn">← 返回</button>
+        <h2>🏆 我的成就</h2>
+      </div>
+      <div id="achievements-container"></div>
+    </div>
+
+    <!-- Module Select Screen: Step 2 - Choose Module (合作冒险版) -->
+    <div id="module-screen" class="screen" style="display:none;">
+      <h1 style="font-size:20px;margin:16px 0 8px;">选择冒险模块</h1>
+      <p style="font-size:13px;color:#888;margin:0 0 16px;">两人合作，一起闯关！</p>
+      <div style="text-align:center;margin-bottom:12px;">
+        <select id="coop-lesson-select" style="font-size:16px;padding:8px 16px;border-radius:8px;border:2px solid #4A90D9;background:#fff;color:#333;min-width:200px;" onchange="switchCoopLesson(this.value)">
+          <option value="U1L1">Unit 1 Lesson 1</option>
+          <option value="U1L2">Unit 1 Lesson 2</option>
+          <option value="U1L3">Unit 1 Lesson 3</option>
+          <option value="U1L4">Unit 1 Lesson 4</option>
+          <option value="U2L1">Unit 2 Lesson 1</option>
+          <option value="U2L2">Unit 2 Lesson 2</option>
+          <option value="U2L3">Unit 2 Lesson 3</option>
+          <option value="U2L4">Unit 2 Lesson 4</option>
+          <option value="U3L1">Unit 3 Lesson 1</option>
+          <option value="U3L2">Unit 3 Lesson 2</option>
+          <option value="U3L3">Unit 3 Lesson 3</option>
+          <option value="U3L4">Unit 3 Lesson 4</option>
+          <option value="U4L1">Unit 4 Lesson 1</option>
+          <option value="U4L2">Unit 4 Lesson 2</option>
+          <option value="U4L3">Unit 4 Lesson 3</option>
+          <option value="U4L4">Unit 4 Lesson 4</option>
+        </select>
+      </div>
+      <div class="module-cards">
+        <div class="module-card" data-module="listening" onclick="showAdventureMap('listening')">
+          <div class="module-icon">👂</div>
+          <div class="module-name">听力冒险</div>
+        </div>
+        <div class="module-card" data-module="reading" onclick="showAdventureMap('reading')">
+          <div class="module-icon">📖</div>
+          <div class="module-name">阅读冒险</div>
+        </div>
+        <div class="module-card" data-module="writing" onclick="showAdventureMap('writing')">
+          <div class="module-icon">✏️</div>
+          <div class="module-name">写作冒险</div>
+        </div>
+        <div class="module-card" data-module="speaking" onclick="showAdventureMap('speaking')">
+          <div class="module-icon">🎤</div>
+          <div class="module-name">口语冒险</div>
+        </div>
+        <div class="module-card module-card-project locked" id="project-card" data-module="project" onclick="onProjectCardClick()">
+          <div class="module-icon" id="project-card-icon">🔒</div>
+          <div class="module-name">单元海报</div>
+          <div class="project-lock-hint" id="project-lock-hint">完成四个模块后解锁</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Screen (海报制作) -->
+    <div id="project-screen" class="screen">
+      <div class="adventure-header">
+        <button class="back-btn" onclick="backToModuleSelect()">← 返回</button>
+        <h2 id="project-title">单元海报</h2>
+      </div>
+      <div id="project-container" style="padding:16px;max-width:400px;margin:0 auto;overflow-y:auto;max-height:calc(100vh - 60px);-webkit-overflow-scrolling:touch;"></div>
+    </div>
+
+    <!-- Adventure Map Screen (冒险地图) -->
+    <div id="adventure-map-screen" class="screen">
+      <div class="adventure-header">
+        <button class="back-btn" onclick="backToModuleSelect()">← 返回</button>
+        <h2 id="adventure-module-title">冒险地图</h2>
+      </div>
+      <div id="adventure-map-container">
+        <!-- JS 动态渲染站点列表 -->
+      </div>
+    </div>
+
+    <!-- Test Select Screen: 选课程+模块 → 直接实战 -->
+    <div id="test-select-screen" class="screen">
+      <div style="padding:24px 20px 0;max-width:400px;margin:0 auto;">
+        <h2 style="text-align:center;color:#333;margin-bottom:24px;">选择练习内容</h2>
+
+        <!-- Unit + Lesson 下拉 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+          <div>
+            <div style="font-size:14px;color:#666;margin-bottom:8px;font-weight:600;">Unit</div>
+            <select id="test-unit-select" class="tsel-dropdown">
+              <option value="1">Unit 1</option>
+              <option value="2">Unit 2</option>
+              <option value="3">Unit 3</option>
+              <option value="4">Unit 4</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:14px;color:#666;margin-bottom:8px;font-weight:600;">Lesson</div>
+            <select id="test-lesson-select" class="tsel-dropdown">
+              <option value="1">Lesson 1</option>
+              <option value="2">Lesson 2</option>
+              <option value="3">Lesson 3</option>
+              <option value="4">Lesson 4</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 模块选择 -->
+        <div style="font-size:14px;color:#666;margin-bottom:10px;font-weight:600;">模块</div>
+        <div id="test-module-btns" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:28px;">
+          <button class="tsel-btn active" data-module="listening">👂 听力</button>
+          <button class="tsel-btn" data-module="reading">📖 阅读</button>
+          <button class="tsel-btn" data-module="writing">✏️ 写作</button>
+          <button class="tsel-btn" data-module="speaking">🎤 口语</button>
+        </div>
+
+        <!-- 隐藏的 phase 兼容（保留给教师端同步） -->
+        <div style="display:none;" id="test-phase-btns">
+          <button class="test-sel-btn selected" data-val="practice"></button>
+        </div>
+
+        <button id="test-start-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#58cc02,#46a302);color:#fff;font-size:18px;font-weight:bold;border:none;border-radius:16px;cursor:pointer;box-shadow:0 4px 0 #3d8f02;">开始练习！</button>
+      </div>
+      <style>
+        .tsel-dropdown {
+          width:100%;padding:12px 14px;font-size:16px;font-weight:600;
+          border:2px solid #e5e5e5;border-radius:12px;background:#fff;color:#333;
+          appearance:auto;cursor:pointer;outline:none;transition:border-color .15s;
+        }
+        .tsel-dropdown:focus { border-color:#58cc02; }
+        .tsel-btn {
+          padding:10px 4px;font-size:13px;font-weight:600;border:2px solid #e5e5e5;
+          border-radius:12px;background:#fff;color:#555;cursor:pointer;transition:all .15s;
+        }
+        .tsel-btn.active { border-color:#58cc02;background:#f0fce8;color:#2d7a00; }
+      </style>
+    </div>
+
+    <!-- Game Screen - 简洁设计 -->
+    <div id="game-screen" class="screen">
+      <div class="header">
+        <div class="player-container active-player" id="player1-ui">
+          <div class="avatar">A</div>
+          <div class="name">Player 1</div>
+          <div class="stars">0分</div>
+        </div>
+        <div class="question-progress" id="question-progress">1/12</div>
+        <div class="player-container" id="player2-ui">
+          <div class="avatar">B</div>
+          <div class="name">Player 2</div>
+          <div class="stars">0分</div>
+        </div>
+      </div>
+
+      <div class="turn-indicator" id="turn-indicator">
+        <span class="turn-progress">1/12</span>
+        <span class="turn-name">请 <strong>张宇豪</strong> 回答</span>
+      </div>
+      <!-- 分题刻度进度条（JS动态填充） -->
+      <div id="quiz-seg-bar"></div>
+
+      <div class="content-area" id="question-container">
+        <!-- Question content rendered by JS -->
+      </div>
+    </div>
+    
+    <!-- Finish Screen -->
+    <div id="finish-screen" class="screen" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <h1 style="font-size:20px;margin:16px 0 8px;">太棒了！</h1>
+      <div id="finish-stars" style="text-align:center;"></div>
+    </div>
+  </div>
+  
+  <!-- Confetti Container -->
+  <div id="confetti-container"></div>
+
+  <!-- 旧方案数据已清理（2026-04-11），备份在 /Users/shenyoujuan/Merry_Data/PhD research/09_App开发/ -->
+  <script src="data/achievements.js?v=117"></script>
+  <script src="data/daily-quests.js?v=117"></script>
+  <script src="data/progress-map.js?v=117"></script>
+  <script src="data/pet-system.js?v=117"></script>
+  <!-- 旧方案模块已清理（2026-04-11），新方案用 coop-types.js -->
+  <!-- 引入 Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- 引入兼容引擎与声音模块 -->
+  <script src="firebase-sync.js?v=117"></script>
+  <script src="data-reporter.js?v=131"></script>
+  <script src="modules/sounds.js?v=117"></script>
+  <script src="modules/soe-evaluator.js?v=118"></script>
+  <script src="data/u1l1_coop.js?v=127"></script>
+  <script src="data/u1l2_coop.js?v=100"></script>
+  <script src="data/u1l3_coop.js?v=100"></script>
+  <script src="data/u1l4_coop.js?v=100"></script>
+  <script src="data/u2l1_coop.js?v=100"></script>
+  <script src="data/u2l2_coop.js?v=100"></script>
+  <script src="data/u2l3_coop.js?v=100"></script>
+  <script src="data/u2l4_coop.js?v=100"></script>
+  <script src="data/u3l1_coop.js?v=100"></script>
+  <script src="data/u3l2_coop.js?v=100"></script>
+  <script src="data/u3l3_coop.js?v=100"></script>
+  <script src="data/u3l4_coop.js?v=100"></script>
+  <script src="data/u4l1_coop.js?v=100"></script>
+  <script src="data/u4l2_coop.js?v=100"></script>
+  <script src="data/u4l3_coop.js?v=100"></script>
+  <script src="data/u4l4_coop.js?v=100"></script>
+  <script src="data/u1_project.js?v=102"></script>
+  <script src="data/u2_project.js?v=102"></script>
+  <script src="data/u3_project.js?v=102"></script>
+  <script src="data/u4_project.js?v=102"></script>
+  <script src="adventure.js?v=131"></script>
+  <script src="coop-types.js?v=128"></script>
+  <script src="app.js?v=130"></script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+/* teacher.css */
+
+:root {
+  --teacher-primary: #58cc02;      /* 绿色主色 */
+  --teacher-success: #58cc02;      /* 绿色 */
+  --teacher-warning: #ff9600;      /* 橙色警告 */
+  --teacher-danger: #ff4b4b;       /* 红色 */
+  --teacher-bg: #f5f7fa;           /* 浅灰背景 */
+  --teacher-card: #ffffff;         /* 卡片白色 */
+  --teacher-text: #333333;         /* 深色文字 */
+  --teacher-text-light: #666666;   /* 浅色文字 */
+  --border-radius: 12px;
+}
+
+body {
+    background-color: var(--teacher-bg);
+    color: var(--teacher-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.teacher-view {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 80px; /* Space for bottom nav if needed */
+}
+
+/* 顶部导航条 */
+.top-nav {
+    background: var(--teacher-primary);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.top-nav h1 {
+    margin: 0;
+    font-size: 20px;
+    flex: 1;
+    text-align: center;
+}
+
+.back-btn {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+/* 卡片样式 */
+.teacher-card {
+  background: var(--teacher-card);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card-title {
+    font-size: 18px;
+    color: var(--teacher-primary);
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+.card-title > * {
+    margin-right: 8px;
+}
+.card-title > *:last-child {
+    margin-right: 0;
+}
+
+/* 按钮样式 */
+.teacher-btn {
+  min-height: 48px;
+  min-width: 120px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+.teacher-btn > * {
+  margin-right: 8px;
+}
+.teacher-btn > *:last-child {
+  margin-right: 0;
+}
+
+.btn-primary {
+    background: var(--teacher-primary);
+    color: white;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 4px 0 #46a302;
+}
+.btn-primary:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #46a302;
+}
+
+.btn-success { background: var(--teacher-success); color: white; box-shadow: 0 4px 0 #46a302; }
+.btn-warning { background: var(--teacher-warning); color: white; box-shadow: 0 4px 0 #cc7800; }
+.btn-danger { background: var(--teacher-danger); color: white; box-shadow: 0 4px 0 #cc0000; }
+
+.btn-outline {
+    background: transparent;
+    color: var(--teacher-primary);
+    border: 2px solid var(--teacher-primary);
+}
+
+/* 进度条 */
+.progress-container {
+    margin: 10px 0;
+}
+.progress-bar {
+  height: 12px;
+  background: #e5e5e5;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--teacher-primary);
+  transition: width 0.3s;
+  -webkit-transition: width 0.3s;
+}
+
+/* 栅格排版 */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 15px;
+    gap: 15px;
+}
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 10px;
+    gap: 10px;
+}
+
+/* 选择模块按钮态 */
+.module-select {
+    padding: 10px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--teacher-text-light);
+}
+.module-select.active {
+    border-color: var(--teacher-primary);
+    color: var(--teacher-primary);
+    background: #f0fff0;
+}
+
+/* 阶段选择 */
+.phase-select {
+    padding: 15px 10px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--teacher-text-light);
+    transition: all 0.2s;
+}
+.phase-select small {
+    font-weight: normal;
+    font-size: 12px;
+    color: #999;
+}
+.phase-select.active {
+    border-color: var(--teacher-primary);
+    color: var(--teacher-primary);
+    background: #f0fff0;
+}
+.phase-select.active small {
+    color: var(--teacher-primary);
+}
+
+/* 名单网格 */
+.name-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+    gap: 10px;
+}
+.name-item {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 15px;
+    border: 1px solid #eee;
+}
+
+/* 列表样式 */
+.info-list {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--teacher-text);
+}
+.info-list li {
+    margin-bottom: 8px;
+}
+
+/* 下拉框 */
+.select-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    background: white;
+    color: var(--teacher-text);
+    box-sizing: border-box;
+}
+
+/* 排名项 */
+.ranking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+.ranking-item:last-child {
+    border-bottom: none;
+}
+.r-rank { font-weight: bold; width: 30px; }
+.r-names { flex: 1; font-weight: 500;}
+.r-score { font-weight: bold; color: var(--teacher-warning); }
+
+/* 主页菜单块 */
+.menu-block {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    text-decoration: none;
+    color: var(--teacher-text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 5px solid var(--teacher-primary);
+}
+.menu-icon {
+    font-size: 30px;
+    margin-right: 15px;
+    width: 40px;
+    text-align: center;
+}
+.menu-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    color: var(--teacher-primary);
+}
+.menu-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--teacher-text-light);
+}
+
+/* Homework Check Styles */
+.homework-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    grid-gap: 8px;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.hw-student-card {
+    background: #f0f0f0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.hw-student-card:hover {
+    background: #e0e0e0;
+}
+
+.hw-student-card.incomplete {
+    background: #ffebee;
+    border-color: #ff5252;
+    color: #d32f2f;
+}
+
+.hw-incomplete-badge {
+    display: inline-block;
+    background: #ff5252;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+/* --- Homework Check Horizontal Sliding --- */
+.hw-pages-container {
+    display: flex;
+    overflow-x: auto;
+    -webkit-scroll-snap-type: mandatory;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 10px;
+    width: 100%;
+}
+.hw-pages-container::-webkit-scrollbar {
+    display: none;
+}
+
+.hw-page {
+    flex: 0 0 100%;
+    -webkit-scroll-snap-align: start;
+    scroll-snap-align: start;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    grid-gap: 8px;
+    gap: 8px;
+    padding: 5px;
+    box-sizing: border-box;
+    /* 4行，每行约36px加上gap，保证足够高度 */
+    min-height: 180px; 
+    align-content: start;
+}
+
+.hw-page-dots {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+.hw-page-dots > * {
+    margin-right: 6px;
+}
+.hw-page-dots > *:last-child {
+    margin-right: 0;
+}
+.hw-page-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+    transition: all 0.3s;
+}
+.hw-page-dot.active {
+    background: var(--teacher-primary);
+    transform: scale(1.2);
+}
+
+.hw-student-card {
+    background: #f0f0f0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 38px;
+}
+.hw-student-card:active {
+    transform: scale(0.95);
+}
+.hw-student-card.incomplete {
+    background: #ffebee;
+    border-color: #ff5252;
+    color: #d32f2f;
+    box-shadow: 0 2px 0 #ff5252 inset, 0 -2px 0 #ff5252 inset;
+}
