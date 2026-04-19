@@ -7,6 +7,9 @@
 
 ## 2026-04
 
+### 2026-04-19 (46)
+- 🔊 **修复 GitHub Pages 音频不播放**：3个根因修复。①`speakWord()` 在非 localhost 时被 AudioContext suspended 状态阻断，没能走到 speechSynthesis 分支——修复：把 `!_ttsIsLocal` 判断提到最前，不经过 AudioContext 检查直接调用 speechSynthesis。②Chrome speechSynthesis 长时间使用后卡死——修复：所有 `speak()` 调用前加 `cancel()`（app.js speakFeedback/speakEncouragement/speakWord，coop-types.js 所有支架触发点共6处）。③coop-types.js 第1726行 `new Audio(q.audio).play()` 用 URL 方式播放文本内容——修复：改为 `speakWord(q.audio)`。app.js→v133，coop-types.js→v129。
+
 ### 2026-04-19 (45)
 - 📄 **Figure 2 Theory Activation Matrix v4 完成+专家审查**：完成 `docs/conceptual_framework/figure2_v4.html`——5理论×4阶段矩阵，3P顶部Banner，Integration Points底部卡片加Phase标签。所有格子配真实App截图（含Secondary）。Opus专家+导师视角双重审查后修正6处：SLA P2补充Swain pushed output；ZPD标注"inherent SC mechanism"；SC P1文字匹配截图；SE P2去重聚焦vicarious experience；Note补充SC认识论定位和ZPD关系说明；Integration Points加Phase标签。决策详见 `docs/decisions/ADR-014_Figure2理论激活矩阵设计与审查.md`。
 

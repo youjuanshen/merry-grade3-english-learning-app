@@ -1723,7 +1723,7 @@ function renderCoopSpellWord(q, container) {
         var audioBtn = document.createElement('button');
         audioBtn.className = 'spell-audio-btn';
         audioBtn.innerHTML = '🔊';
-        audioBtn.onclick = function() { new Audio(q.audio).play(); };
+        audioBtn.onclick = function() { if (typeof speakWord === 'function') speakWord(q.audio); };
         container.appendChild(audioBtn);
     }
 
@@ -2588,6 +2588,7 @@ function triggerScaffoldSideEffect(q, level, container) {
         if (typeof speakWord === 'function' && q.audio) {
             // 通过 Web Speech API 调低语速（如可用）
             if (window.speechSynthesis) {
+                window.speechSynthesis.cancel(); // Chrome bug fix
                 var utt = new SpeechSynthesisUtterance(q.audio);
                 utt.rate = 0.8;
                 window.speechSynthesis.speak(utt);
@@ -2611,6 +2612,7 @@ function triggerScaffoldSideEffect(q, level, container) {
     // coop_listen_relay Level 3：首音提示 —— 用慢速重读关键词 2 次
     if (level === 3 && type === 'coop_listen_relay') {
         if (window.speechSynthesis && q.audio) {
+            window.speechSynthesis.cancel(); // Chrome bug fix
             var lrUtt1 = new SpeechSynthesisUtterance(q.audio);
             lrUtt1.rate = 0.6;
             window.speechSynthesis.speak(lrUtt1);
@@ -2648,6 +2650,7 @@ function triggerScaffoldSideEffect(q, level, container) {
     // coop_listen_sort Level 2：慢速重播整段序列
     if (level === 2 && type === 'coop_listen_sort') {
         if (window.speechSynthesis && q.sequence && q.sequence.length) {
+            window.speechSynthesis.cancel(); // Chrome bug fix
             var lsDelay = 0;
             q.sequence.forEach(function(w) {
                 setTimeout(function() {
@@ -2669,6 +2672,7 @@ function triggerScaffoldSideEffect(q, level, container) {
     // coop_listen_sort Level 3：每个词慢速重读 2 次（不给顺序答案）
     if (level === 3 && type === 'coop_listen_sort') {
         if (window.speechSynthesis && q.sequence && q.sequence.length) {
+            window.speechSynthesis.cancel(); // Chrome bug fix
             var ls3Delay = 0;
             q.sequence.forEach(function(w) {
                 setTimeout(function() {
@@ -2711,6 +2715,7 @@ function triggerScaffoldSideEffect(q, level, container) {
         var lscSidePhase2 = (window.adventureState && window.adventureState.coopPhase) || 'A';
         if (lscSidePhase2 !== 'B') {
             if (window.speechSynthesis && q.audio) {
+                window.speechSynthesis.cancel(); // Chrome bug fix
                 var lscU = new SpeechSynthesisUtterance(q.audio);
                 lscU.rate = 0.6;
                 window.speechSynthesis.speak(lscU);
@@ -2726,6 +2731,7 @@ function triggerScaffoldSideEffect(q, level, container) {
         if (lscSidePhase3 !== 'B') {
             var lscKey = (q.stepA && q.stepA.correct) ? q.stepA.correct : '';
             if (lscKey && window.speechSynthesis) {
+                window.speechSynthesis.cancel(); // Chrome bug fix
                 var lscU1 = new SpeechSynthesisUtterance(lscKey);
                 lscU1.rate = 0.5;
                 window.speechSynthesis.speak(lscU1);

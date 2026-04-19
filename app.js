@@ -529,6 +529,7 @@ function speakEncouragement(isCorrect) {
         const utterance = new SpeechSynthesisUtterance(phrase);
         utterance.lang = 'en-US';
         utterance.rate = 1.0;
+        window.speechSynthesis.cancel(); // Chrome bug：先 cancel 再 speak，防止卡死
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -623,6 +624,7 @@ function speakFeedback(isCorrect) {
         const utterance = new SpeechSynthesisUtterance(item.en);
         utterance.lang = 'en-US';
         utterance.rate = 1.0;
+        window.speechSynthesis.cancel(); // Chrome bug：先 cancel 再 speak，防止卡死
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -678,6 +680,30 @@ document.addEventListener('click', _unlockAudioOnTouch, false);
 function speakWord(word) {
     if (!word) return;
     console.log('[TTS] speakWord:', word);
+
+    // 非 localhost（GitHub Pages / 局域网 HTTPS）：直接用 speechSynthesis
+    // 必须先判断，不能被 AudioContext.state 阻断
+    var _ttsIsLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (!_ttsIsLocal) {
+        if (window.speechSynthesis) {
+            // Chrome bug：speechSynthesis 长时间使用后会卡死，cancel() 后再 speak() 解决
+            window.speechSynthesis.cancel();
+            var utt = new SpeechSynthesisUtterance(word);
+            utt.lang = 'en-US';
+            utt.rate = 0.85;
+            // iOS Safari：speechSynthesis.speak() 必须在用户手势同步回调中调用。
+            // 自动播放（setTimeout/页面加载时）在 iOS 会静默失败。
+            // 这里直接调用——点击播放按钮时会成功；页面自动播放时 iOS 会静默忽略，
+            // 用户看到 🔊 按钮手动触发即可，行为可接受。
+            window.speechSynthesis.speak(utt);
+            console.log('[TTS] speechSynthesis:', word);
+        } else {
+            console.warn('[TTS] speechSynthesis not available');
+        }
+        return;
+    }
+
+    // localhost：走 AudioContext + 服务器 TTS
     var ctx = _getAudioCtx();
     if (!ctx) {
         console.warn('[TTS] no AudioContext');
@@ -698,22 +724,7 @@ function speakWord(word) {
         return;
     }
 
-    // 非 localhost：直接用 speechSynthesis（GitHub Pages 无服务器 TTS）
-    var _ttsIsLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (!_ttsIsLocal) {
-        if (window.speechSynthesis) {
-            var utt = new SpeechSynthesisUtterance(word);
-            utt.lang = 'en-US';
-            utt.rate = 0.85;
-            window.speechSynthesis.speak(utt);
-            console.log('[TTS] speechSynthesis fallback:', word);
-        } else {
-            console.warn('[TTS] speechSynthesis not available');
-        }
-        return;
-    }
-
-    // localhost：请求服务器TTS音频
+    // 请求服务器TTS音频
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/tts?text=' + encodeURIComponent(word), true);
     xhr.responseType = 'arraybuffer';
