@@ -125,47 +125,52 @@ function bindPublishButton() {
     var btn = document.getElementById('btn-start-class');
     if (!btn) return;
     btn.onclick = function() {
-        var unitEl = document.getElementById('unit-select');
-        var lessonEl = document.getElementById('lesson-select');
-        var timeLimitEl = document.getElementById('time-limit-select');
+        try {
+            var unitEl = document.getElementById('unit-select');
+            var lessonEl = document.getElementById('lesson-select');
+            var timeLimitEl = document.getElementById('time-limit-select');
 
-        var unitVal = unitEl ? unitEl.value : '1';
-        var lessonVal = lessonEl ? lessonEl.value : '1';
-        var timeLimit = parseInt(timeLimitEl ? timeLimitEl.value : 0) || 0;
+            var unitVal = unitEl ? unitEl.value : '1';
+            var lessonVal = lessonEl ? lessonEl.value : '1';
+            var timeLimit = parseInt(timeLimitEl ? timeLimitEl.value : 0) || 0;
 
-        currentLesson = 'U' + unitVal + 'L' + lessonVal;
+            currentLesson = 'U' + unitVal + 'L' + lessonVal;
 
-        var unitText = unitEl ? unitEl.options[unitEl.selectedIndex].text : 'Unit ' + unitVal;
-        var lessonText = lessonEl ? lessonEl.options[lessonEl.selectedIndex].text.split(':')[0] : 'Lesson ' + lessonVal;
-        var moduleText = getModuleChinese(currentModule);
+            var unitText = unitEl ? unitEl.options[unitEl.selectedIndex].text : 'Unit ' + unitVal;
+            var lessonText = lessonEl ? lessonEl.options[lessonEl.selectedIndex].text.split(':')[0] : 'Lesson ' + lessonVal;
+            var moduleText = getModuleChinese(currentModule);
 
-        // 从 lessonObjectives 提取课题名
-        var lId = currentLesson;
-        var objData = typeof lessonObjectives !== 'undefined' ? lessonObjectives[lId] : null;
-        if (objData && objData.title && objData.title.indexOf(':') !== -1) {
-            var topicName = objData.title.split(':')[1].trim();
-            lessonText += ' · ' + topicName;
+            // 从 lessonObjectives 提取课题名
+            var lId = currentLesson;
+            var objData = typeof lessonObjectives !== 'undefined' ? lessonObjectives[lId] : null;
+            if (objData && objData.title && objData.title.indexOf(':') !== -1) {
+                var topicName = objData.title.split(':')[1].trim();
+                lessonText += ' · ' + topicName;
+            }
+
+            var currentLessonObj = {
+                unit: parseInt(unitVal),
+                lesson: parseInt(lessonVal),
+                module: currentModule,
+                displayName: unitText + ' ' + lessonText + ' - ' + moduleText
+            };
+
+            Sync.setCurrentLesson(currentLessonObj);
+            Sync.sendTeacherCommand({
+                action: 'start',
+                module: currentModule,
+                phase: currentPhase,
+                lesson: currentLesson,
+                timeLimit: timeLimit,
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('merry_class_started', Date.now().toString());
+            showControlMode();
+        } catch(e) {
+            console.error('发布失败:', e);
+            alert('发布失败: ' + e.message);
         }
-
-        var currentLessonObj = {
-            unit: parseInt(unitVal),
-            lesson: parseInt(lessonVal),
-            module: currentModule,
-            displayName: unitText + ' ' + lessonText + ' - ' + moduleText
-        };
-
-        Sync.setCurrentLesson(currentLessonObj);
-        Sync.sendTeacherCommand({
-            action: 'start',
-            module: currentModule,
-            phase: currentPhase,
-            lesson: currentLesson,
-            timeLimit: timeLimit,
-            timestamp: Date.now()
-        });
-
-        localStorage.setItem('merry_class_started', Date.now().toString());
-        showControlMode();
     };
 }
 
