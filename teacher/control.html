@@ -43,16 +43,6 @@
             margin: 0 0 4px;
             font-weight: 800;
         }
-        .control-header .phase-badge {
-            display: inline-block;
-            background: rgba(88, 204, 2, 0.15);
-            color: #58cc02;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
         /* Timer card */
         .timer-card {
             background: white;
@@ -112,33 +102,7 @@
         }
         .timer-preset:active { transform: scale(0.95); }
 
-        /* Main launch button */
-        .launch-btn {
-            display: block;
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 14px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #58cc02;
-            color: white;
-            box-shadow: 0 4px 0 #46a302;
-        }
-        .launch-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #46a302;
-        }
-        .launch-btn.disabled {
-            background: #e8e8e8;
-            color: #999;
-            box-shadow: none;
-            cursor: default;
-        }
-
-        /* Timer mini controls (shown after launch) */
+        /* Timer mini controls */
         .timer-mini-controls {
             display: none;
             gap: 12px;
@@ -248,9 +212,8 @@
         </div>
 
         <div class="control-header">
-            <h2 id="display-module">听力 - 热身赛</h2>
-            <span class="phase-badge" id="phase-badge">🏃 热身赛阶段</span>
-            <div id="elapsed-time" style="text-align:center; font-size:13px; color:#888; margin-top:4px;">已进行 0 分钟</div>
+            <h2 id="display-module" style="font-size:18px;">U1L1 · 听力</h2>
+            <div id="elapsed-time" style="font-size:13px; color:#888; margin-top:4px;">已进行 0 分钟</div>
         </div>
 
         <div class="timer-card">
@@ -271,11 +234,8 @@
                 <button onclick="startCustomTimer()" style="padding:8px 16px; background:var(--teacher-primary, #4CAF50); color:white; border:none; border-radius:8px; font-size:13px; cursor:pointer;">开始</button>
             </div>
 
-            <!-- Main action: launch practice + start timer -->
-            <button class="launch-btn" id="btn-launch">🚀 进入闯关赛</button>
-
-            <!-- Mini controls: appear after launch -->
-            <div class="timer-mini-controls" id="timer-controls">
+            <!-- Mini controls -->
+            <div class="timer-mini-controls" id="timer-controls" style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
                 <button class="mini-btn pause-btn" id="btn-timer-pause">⏸ 暂停</button>
                 <button class="mini-btn reset-btn" id="btn-timer-reset">重新计时</button>
             </div>
@@ -321,7 +281,6 @@
         var launched = false;
 
         var timerDisplay = document.getElementById('timer-display');
-        var btnLaunch = document.getElementById('btn-launch');
         var btnTimerPause = document.getElementById('btn-timer-pause');
         var btnTimerReset = document.getElementById('btn-timer-reset');
         var timerControls = document.getElementById('timer-controls');

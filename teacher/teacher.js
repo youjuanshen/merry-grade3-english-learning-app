@@ -256,26 +256,10 @@ function renderObservationList() {
 // --- CONTROL PAGE ---
 function updateControlTitle(mod, phase) {
     var lessonInfo = Sync.getCurrentLessonOnceSync();
-    var unitLesson = lessonInfo ? ('U' + lessonInfo.unit + 'L' + lessonInfo.lesson + ' ') : '';
-    var phaseText = phase === 'pretest' ? '热身赛' : '闯关赛';
-
-    var lessonKey = lessonInfo ? ('U' + lessonInfo.unit + 'L' + lessonInfo.lesson) : '';
-    var topicTitle = '';
-    if (lessonKey && typeof lessonObjectives !== 'undefined' && lessonObjectives[lessonKey]) {
-        var fullTitle = lessonObjectives[lessonKey].title || '';
-        var colonIdx = fullTitle.indexOf(':');
-        topicTitle = colonIdx !== -1 ? fullTitle.substring(colonIdx + 1).trim() : fullTitle;
-    }
-
-    var displayText = unitLesson + (topicTitle ? topicTitle + ' · ' : '') + getModuleChinese(mod) + ' - ' + phaseText;
+    var unitLesson = lessonInfo ? ('U' + lessonInfo.unit + 'L' + lessonInfo.lesson) : '';
+    var displayText = unitLesson + ' · ' + getModuleChinese(mod);
     var el = document.getElementById('display-module');
     if (el) el.textContent = displayText;
-
-    // Update phase badge if exists
-    var badge = document.getElementById('phase-badge');
-    if (badge) {
-        badge.textContent = phase === 'pretest' ? '🏃 热身赛' : '🎮 闯关赛';
-    }
 }
 
 function initControlPage() {
@@ -300,50 +284,8 @@ function initControlPage() {
             currentModule = cmd.module;
             currentPhase = cmd.phase;
             updateControlTitle(currentModule, currentPhase);
-            // 如果云端返回 practice，更新按钮状态
-            var btnLaunch = document.getElementById('btn-launch');
-            if (btnLaunch && currentPhase === 'practice') {
-                btnLaunch.innerHTML = '✅ 已进入闯关赛';
-                btnLaunch.classList.add('disabled');
-                btnLaunch.disabled = true;
-            }
         }
     });
-
-
-    // 进入实战 = send command + start timer (one-way)
-    var btnLaunch = document.getElementById('btn-launch');
-    if (btnLaunch) {
-        if (currentPhase === 'practice') {
-            btnLaunch.innerHTML = '✅ 已进入闯关赛';
-            btnLaunch.classList.add('disabled');
-            btnLaunch.disabled = true;
-            var tc = document.getElementById('timer-controls');
-            if (tc) tc.classList.add('show');
-        }
-        btnLaunch.onclick = function() {
-            if (this.disabled) return;
-            currentPhase = 'practice';
-            Sync.sendTeacherCommand({
-                action: 'start',
-                module: currentModule,
-                phase: currentPhase,
-                timestamp: Date.now()
-            });
-            // Disable button permanently
-            this.innerHTML = '✅ 已进入闯关赛';
-            this.classList.add('disabled');
-            this.disabled = true;
-            updateControlTitle(currentModule, currentPhase);
-            // Show timer controls and start countdown
-            var tc = document.getElementById('timer-controls');
-            if (tc) tc.classList.add('show');
-            // Disable preset switching
-            if (typeof launched !== 'undefined') launched = true;
-            // Start countdown (function defined in control.html inline script)
-            if (typeof startCountdown === 'function') startCountdown();
-        };
-    }
 }
 
 async function pollStudentProgress() {
