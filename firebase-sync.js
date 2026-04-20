@@ -67,7 +67,7 @@ const Sync = {
      */
     listenTeacherCommand: (callback) => {
         let lastTimestamp = 0;
-        let pollInterval = 30000; // 30秒轮询（省费用）
+        let pollInterval = 5000; // 5秒轮询（SCF内存请求轻量，免费额度充足）
         let errorCount = 0;
         let pollTimer = null;
 
@@ -200,12 +200,29 @@ const Sync = {
      */
     setDashboardData: (key, data) => {
         localStorage.setItem(key, JSON.stringify(data));
+        // 同步到云端（非阻塞）
+        scfSet(key, data).catch(function(e) {
+            console.warn('[Sync] Dashboard数据云端同步失败:', e.message);
+        });
     },
 
     getDashboardDataOnce: async (key) => {
+        // 先本地
         try {
-            return JSON.parse(localStorage.getItem(key) || 'null');
-        } catch(e) { return null; }
+            var local = JSON.parse(localStorage.getItem(key) || 'null');
+            if (local) return local;
+        } catch(e) {}
+        // 本地没有，走云端
+        try {
+            var val = await scfGet(key);
+            if (val) {
+                localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
+                return val;
+            }
+        } catch(e) {
+            console.warn('[Sync] Dashboard云端读取失败:', e.message);
+        }
+        return null;
     }
 };
 

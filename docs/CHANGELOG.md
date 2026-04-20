@@ -8,7 +8,7 @@
 ## 2026-04
 
 ### 2026-04-20 (48)
-- 🔗 **教师-学生指令同步打通**：修复教师发布课程后学生端收不到的问题。根因：飞书免费版API配额超限（1万次/月），学生轮询消耗~4.4万次/月。修复：①`firebase-sync.js` 的 `_isLocal` 扩展匹配私有IP（192.168.x.x等），本地网络走 `/api` 内存存储；②`tencent_scf.js` 教师指令（teacherCommand/currentLesson）改存SCF内存变量+`/tmp`文件双保险，不再走飞书API；③飞书token延迟获取（`ensureToken`），教师指令请求完全不触发飞书API。月飞书调用量从~4.5万降到~3000次，免费额度够用。已部署SCF并测试通过。决策详见 `docs/decisions/ADR-016_教师指令存SCF内存替代飞书.md`。
+- 🔗 **教师-学生全链路同步打通**：修复教师发布课程后学生端收不到 + 教师看不到学生进度。根因：飞书API配额超限。6项修复：①firebase-sync.js 本地网络走`/api`；②tencent_scf.js teacherCommand/currentLesson/studentProgress_*全部存SCF内存；③setDashboardData/getDashboardDataOnce改为localStorage+SCF双写双读；④轮询从30秒缩到5秒；⑤control.html/dashboard.html修复SCF_URL不一致；⑥删除control/feedback页面无用Firebase SDK。已部署SCF，5项端到端测试全部通过。决策详见ADR-016。
 
 ### 2026-04-19 (47)
 - 📄 **Figure 1 & Figure 2 定稿**：Figure 1加AI sidebar（ZPD内右侧竖条，Development/Delivery/Adaptation三层）；Figure 2全面升级——3P从纯Banner改为矩阵行+简化Banner、矩阵行顺序改为SC→ZPD→SLA→3P→CLT→SE（和Figure 1一致）、标题/Legend/Note全部重写更通俗、AI横条改为三列卡片对齐Figure 1、Integration Points按Phase排列、3P行加截图。两张图PNG放桌面发导师。决策详见 `docs/decisions/ADR-015_Figure1-Figure2定稿与导师汇报.md`。

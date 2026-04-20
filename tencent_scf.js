@@ -675,8 +675,8 @@ export const main_handler = async (event, context) => {
 
         // 1. 写入指令
         if (d.action === 'set') {
-            // 教师指令存内存+/tmp（不走飞书，省配额）
-            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+            // 教师指令 + 学生进度 存内存+/tmp（不走飞书，省配额）
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson' || (d.key && d.key.indexOf('studentProgress_') === 0)) {
                 cmdSet(d.key, d.value);
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok (memory)' }) };
             }
@@ -688,8 +688,8 @@ export const main_handler = async (event, context) => {
 
         // 2. 读取指令
         if (d.action === 'get') {
-            // 教师指令从内存+/tmp读（不走飞书）
-            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+            // 教师指令 + 学生进度 从内存+/tmp读（不走飞书）
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson' || (d.key && d.key.indexOf('studentProgress_') === 0)) {
                 var val = cmdGet(d.key);
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: val }) };
             }
