@@ -4,6 +4,7 @@
 
 import https from 'https';
 import crypto from 'crypto';
+import fs from 'fs';
 
 const LARK_APP_ID = "cli_a93bc13364f88060";
 const LARK_APP_SECRET = "mJRuXzOQk9ejHdvIvFFfVbmvGycI1KdR";
@@ -342,6 +343,35 @@ async function getCommand(token, key) {
     return null;
 }
 
+// ========== 教师指令内存缓存（不走飞书，省 API 配额）==========
+
+const _cmdCache = {};
+const CMD_TMP_DIR = '/tmp/merry_cmd';
+
+function cmdSet(key, value) {
+    _cmdCache[key] = value;
+    // /tmp 文件备份（防多实例/冷启动）
+    try {
+        if (!fs.existsSync(CMD_TMP_DIR)) fs.mkdirSync(CMD_TMP_DIR, { recursive: true });
+        fs.writeFileSync(CMD_TMP_DIR + '/' + key + '.json', typeof value === 'string' ? value : JSON.stringify(value));
+    } catch(e) { /* /tmp 写失败不阻塞 */ }
+}
+
+function cmdGet(key) {
+    // 先内存
+    if (_cmdCache[key] !== undefined) return _cmdCache[key];
+    // 再 /tmp 文件
+    try {
+        var filePath = CMD_TMP_DIR + '/' + key + '.json';
+        if (fs.existsSync(filePath)) {
+            var data = fs.readFileSync(filePath, 'utf8');
+            _cmdCache[key] = data; // 回填缓存
+            return data;
+        }
+    } catch(e) { /* 读失败返回 null */ }
+    return null;
+}
+
 // ========== 主处理函数 ==========
 
 export const main_handler = async (event, context) => {
@@ -367,7 +397,12 @@ export const main_handler = async (event, context) => {
         if (event.isBase64Encoded) bodyStr = Buffer.from(bodyStr, 'base64').toString('utf8');
         var d = JSON.parse(bodyStr);
 
-        var token = await getToken();
+        // 延迟获取飞书 token（教师指令走内存，不需要飞书）
+        var _token = null;
+        async function ensureToken() {
+            if (!_token) _token = await getToken();
+            return _token;
+        }
 
         // ========== 路由 ==========
 
@@ -377,7 +412,7 @@ export const main_handler = async (event, context) => {
             if (!records || !records.length) {
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: -1, msg: 'records empty' }) };
             }
-            var batchResp = await batchCreate(token, TABLE_BEHAVIOR_LOG, records);
+            var batchResp = await batchCreate(await ensureToken(), TABLE_BEHAVIOR_LOG, records);
             var batchCode = (batchResp && batchResp.code === 0) ? 0 : -1;
             return { statusCode: 200, headers: cors, body: JSON.stringify({ code: batchCode, msg: 'ok', count: records.length, larkResp: batchResp }) };
         }
@@ -388,14 +423,15 @@ export const main_handler = async (event, context) => {
             if (!srec || !srec.studentId) {
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: -1, msg: 'record.studentId required' }) };
             }
-            var sexisting = await findByField(token, TABLE_STUDENT_PROFILE, 'studentId', srec.studentId);
+            var _t1 = await ensureToken();
+            var sexisting = await findByField(_t1, TABLE_STUDENT_PROFILE, 'studentId', srec.studentId);
             var sWriteResp;
             if (sexisting) {
-                sWriteResp = await putRecord(token, TABLE_STUDENT_PROFILE, sexisting.record_id, srec);
+                sWriteResp = await putRecord(_t1, TABLE_STUDENT_PROFILE, sexisting.record_id, srec);
             } else {
                 sWriteResp = await post('open.feishu.cn',
                     '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN + '/tables/' + TABLE_STUDENT_PROFILE + '/records',
-                    { fields: srec }, token);
+                    { fields: srec }, _t1);
             }
             var sCode = (sWriteResp && sWriteResp.code === 0) ? 0 : -1;
             return { statusCode: 200, headers: cors, body: JSON.stringify({ code: sCode, msg: sCode === 0 ? 'ok' : 'lark write failed', larkResp: sWriteResp }) };
@@ -407,13 +443,14 @@ export const main_handler = async (event, context) => {
             if (!prec || !prec.pairId || !prec.lessonId) {
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: -1, msg: 'record.pairId and record.lessonId required' }) };
             }
-            var pexisting = await findByTwoFields(token, TABLE_PAIR_COLLAB_LOG, 'pairId', prec.pairId, 'lessonId', prec.lessonId);
+            var _t2 = await ensureToken();
+            var pexisting = await findByTwoFields(_t2, TABLE_PAIR_COLLAB_LOG, 'pairId', prec.pairId, 'lessonId', prec.lessonId);
             if (pexisting) {
-                await putRecord(token, TABLE_PAIR_COLLAB_LOG, pexisting.record_id, prec);
+                await putRecord(_t2, TABLE_PAIR_COLLAB_LOG, pexisting.record_id, prec);
             } else {
                 await post('open.feishu.cn',
                     '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN + '/tables/' + TABLE_PAIR_COLLAB_LOG + '/records',
-                    { fields: prec }, token);
+                    { fields: prec }, _t2);
             }
             return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok' }) };
         }
@@ -449,7 +486,7 @@ export const main_handler = async (event, context) => {
                 var qurl = '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN +
                     '/tables/' + TABLE_BEHAVIOR_LOG + '/records?filter=' + qfilter + '&page_size=500' +
                     (pageToken ? '&page_token=' + encodeURIComponent(pageToken) : '');
-                var qresp = await get('open.feishu.cn', qurl, token);
+                var qresp = await get('open.feishu.cn', qurl, await ensureToken());
                 var pageItems = (qresp.data && qresp.data.items) ? qresp.data.items : [];
                 allItems = allItems.concat(pageItems);
                 if (qresp.data && qresp.data.has_more && qresp.data.page_token) {
@@ -464,7 +501,7 @@ export const main_handler = async (event, context) => {
             try {
                 var spUrl = '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN +
                     '/tables/' + TABLE_STUDENT_PROFILE + '/records?page_size=500';
-                var spResp = await get('open.feishu.cn', spUrl, token);
+                var spResp = await get('open.feishu.cn', spUrl, await ensureToken());
                 if (spResp.data && spResp.data.items) {
                     spResp.data.items.forEach(function(rec) {
                         var f = rec.fields || {};
@@ -638,12 +675,26 @@ export const main_handler = async (event, context) => {
 
         // 1. 写入指令
         if (d.action === 'set') {
+            // 教师指令存内存+/tmp（不走飞书，省配额）
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+                cmdSet(d.key, d.value);
+                return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok (memory)' }) };
+            }
+            // 其他 key 继续走飞书
+            var token = await ensureToken();
             var result = await setCommand(token, d.key, d.value);
             return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok' }) };
         }
 
         // 2. 读取指令
         if (d.action === 'get') {
+            // 教师指令从内存+/tmp读（不走飞书）
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+                var val = cmdGet(d.key);
+                return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: val }) };
+            }
+            // 其他 key 继续走飞书
+            var token = await ensureToken();
             var value = await getCommand(token, d.key);
             return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: value }) };
         }
@@ -665,7 +716,7 @@ export const main_handler = async (event, context) => {
 
         var result = await post('open.feishu.cn',
             '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN + '/tables/' + TABLE_SCORES + '/records',
-            { fields: fields }, token);
+            { fields: fields }, await ensureToken());
 
         return { statusCode: 200, headers: cors, body: JSON.stringify(result) };
 

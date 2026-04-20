@@ -7,6 +7,12 @@
 
 ## 2026-04
 
+### 2026-04-20 (48)
+- 🔗 **教师-学生指令同步打通**：修复教师发布课程后学生端收不到的问题。根因：飞书免费版API配额超限（1万次/月），学生轮询消耗~4.4万次/月。修复：①`firebase-sync.js` 的 `_isLocal` 扩展匹配私有IP（192.168.x.x等），本地网络走 `/api` 内存存储；②`tencent_scf.js` 教师指令（teacherCommand/currentLesson）改存SCF内存变量+`/tmp`文件双保险，不再走飞书API；③飞书token延迟获取（`ensureToken`），教师指令请求完全不触发飞书API。月飞书调用量从~4.5万降到~3000次，免费额度够用。已部署SCF并测试通过。决策详见 `docs/decisions/ADR-016_教师指令存SCF内存替代飞书.md`。
+
+### 2026-04-19 (47)
+- 📄 **Figure 1 & Figure 2 定稿**：Figure 1加AI sidebar（ZPD内右侧竖条，Development/Delivery/Adaptation三层）；Figure 2全面升级——3P从纯Banner改为矩阵行+简化Banner、矩阵行顺序改为SC→ZPD→SLA→3P→CLT→SE（和Figure 1一致）、标题/Legend/Note全部重写更通俗、AI横条改为三列卡片对齐Figure 1、Integration Points按Phase排列、3P行加截图。两张图PNG放桌面发导师。决策详见 `docs/decisions/ADR-015_Figure1-Figure2定稿与导师汇报.md`。
+
 ### 2026-04-19 (46)
 - 🔊 **修复 GitHub Pages 音频不播放**：3个根因修复。①`speakWord()` 在非 localhost 时被 AudioContext suspended 状态阻断，没能走到 speechSynthesis 分支——修复：把 `!_ttsIsLocal` 判断提到最前，不经过 AudioContext 检查直接调用 speechSynthesis。②Chrome speechSynthesis 长时间使用后卡死——修复：所有 `speak()` 调用前加 `cancel()`（app.js speakFeedback/speakEncouragement/speakWord，coop-types.js 所有支架触发点共6处）。③coop-types.js 第1726行 `new Audio(q.audio).play()` 用 URL 方式播放文本内容——修复：改为 `speakWord(q.audio)`。app.js→v133，coop-types.js→v129。
 

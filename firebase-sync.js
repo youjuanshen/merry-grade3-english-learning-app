@@ -3,9 +3,16 @@
  * 通过腾讯云函数 + 飞书多维表格实现多设备通信
  */
 
-// 环境判断：localhost 走本地代理，否则直连 SCF（GitHub Pages 部署）
-var _isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-var SCF_URL = _isLocal ? "/api/scf" : "https://1316992450-2fbeeh6iet.ap-guangzhou.tencentscf.com/";
+// 环境判断：本地网络（含局域网 IP）走本地内存存储，GitHub Pages 等公网域名走云端 SCF
+var _hostname = window.location.hostname;
+var _isLocal = (
+    _hostname === 'localhost' ||
+    _hostname === '127.0.0.1' ||
+    /^192\.168\./.test(_hostname) ||
+    /^10\./.test(_hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(_hostname)
+);
+var SCF_URL = _isLocal ? "/api" : "https://1316992450-2fbeeh6iet.ap-guangzhou.tencentscf.com/";
 var SCF_API_KEY = "merry-quiz-2026-secret";
 
 const _cache = {
