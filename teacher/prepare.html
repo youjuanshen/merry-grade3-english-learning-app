@@ -48,55 +48,6 @@
             display: none;
         }
 
-        /* Time pills */
-        .time-pills {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .time-pill {
-            flex: 1;
-            min-width: 0;
-            padding: 12px 6px;
-            border: 2px solid #e8e8e8;
-            border-radius: 12px;
-            background: white;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            font-weight: 600;
-            color: #888;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .time-pill .time-val {
-            display: block;
-            font-size: 20px;
-            font-weight: 700;
-            color: #555;
-            margin-bottom: 2px;
-        }
-        .time-pill .time-label {
-            display: block;
-            font-size: 11px;
-            color: #aaa;
-            font-weight: normal;
-        }
-        .time-pill.active {
-            border-color: var(--teacher-primary);
-            background: #f0fff0;
-            color: var(--teacher-primary);
-        }
-        .time-pill.active .time-val {
-            color: var(--teacher-primary);
-        }
-        .time-pill.active .time-label {
-            color: var(--teacher-primary);
-        }
-        .time-pill:active {
-            transform: scale(0.96);
-        }
-
         /* Launch area */
         .launch-area {
             margin-top: 8px;
@@ -108,7 +59,7 @@
         <a href="index.html" class="back-btn">← 返回</a>
         <h1>📚 课前准备</h1>
     </div>
-    
+
     <div class="teacher-view">
         <!-- 1. 选择课程 -->
         <div class="teacher-card">
@@ -140,7 +91,19 @@
             </div>
         </div>
 
-        <!-- 3. 教学目标（可折叠，默认收起，位于模块和阶段之间） -->
+        <!-- 3. 答题时间（一行式） -->
+        <div class="teacher-card" style="display:flex; align-items:center; justify-content:space-between; padding: 14px 18px;">
+            <span style="font-size:15px; font-weight:600; color:#333;">⏱ 每题答题时间</span>
+            <select class="select-input" id="time-limit-select" style="width:auto; min-width:120px; margin:0;">
+                <option value="0" selected>不限时</option>
+                <option value="15">15 秒/题</option>
+                <option value="20">20 秒/题</option>
+                <option value="30">30 秒/题</option>
+                <option value="45">45 秒/合作题</option>
+            </select>
+        </div>
+
+        <!-- 4. 教学目标（可折叠，默认收起） -->
         <div class="teacher-card">
             <div class="obj-toggle" onclick="toggleObjectives()">
                 <h3 class="card-title">📖 教学目标</h3>
@@ -154,58 +117,17 @@
             <div class="obj-hint" id="obj-hint">点击展开查看本课教学目标</div>
         </div>
 
-        <!-- 4. 选择阶段 -->
-        <div class="teacher-card">
-            <h3 class="card-title">📊 选择阶段</h3>
-            <div class="grid-2" id="phase-selector">
-                <div class="phase-select" data-phase="pretest" style="display:none;">🏃 热身赛<br><small>已取消</small></div>
-                <div class="phase-select active" data-phase="practice">🎮 闯关赛<br><small>游戏化练习</small></div>
-            </div>
-        </div>
-
-        <!-- 5. 答题时间（可视化按钮选择） -->
-        <div class="teacher-card">
-            <h3 class="card-title">⏱️ 每题答题时间</h3>
-            <div class="time-pills" id="time-pills">
-                <div class="time-pill active" data-time="0">
-                    <span class="time-val">∞</span>
-                    <span class="time-label">不限时</span>
-                </div>
-                <div class="time-pill" data-time="15">
-                    <span class="time-val">15</span>
-                    <span class="time-label">秒/题</span>
-                </div>
-                <div class="time-pill" data-time="20">
-                    <span class="time-val">20</span>
-                    <span class="time-label">秒/题</span>
-                </div>
-                <div class="time-pill" data-time="30">
-                    <span class="time-val">30</span>
-                    <span class="time-label">秒/题</span>
-                </div>
-                <div class="time-pill" data-time="45">
-                    <span class="time-val">45</span>
-                    <span class="time-label">合作题</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. 发布按钮 -->
+        <!-- 5. 发布按钮 -->
         <div class="launch-area">
             <button class="teacher-btn btn-primary" id="btn-start-class" style="margin-top: 0;">
                 🚀 开始上课 (发布任务)
             </button>
             <!-- 重置按钮：始终显示，方便测试切换不同课程 -->
-            <button class="teacher-btn" id="btn-reset-class" style="margin-top: 10px; background: transparent; color: #bbb; font-size: 13px; padding: 8px 16px; border: 1.5px dashed #ddd; border-radius: 8px; cursor: pointer; width: 100%;">
-                🔄 重置课堂 (换课程重新发布)
+            <button class="teacher-btn" id="btn-reset-class" style="margin-top: 10px; background: transparent; color: #999; font-size: 13px; padding: 8px 16px; border: none; cursor: pointer; width: 100%; text-decoration: underline;">
+                🔄 重置课堂
             </button>
         </div>
     </div>
-
-    <!-- Hidden select for JS compatibility -->
-    <select id="time-limit-select" style="display:none;">
-        <option value="0" selected>0</option>
-    </select>
 
     <script src="../firebase-sync.js?v=50"></script>
     <script src="data.js?v=50"></script>
@@ -220,18 +142,6 @@
             arrow.classList.toggle('open');
             hint.style.display = body.classList.contains('open') ? 'none' : 'block';
         }
-
-        // Time pill selection
-        var timePills = document.querySelectorAll('.time-pill');
-        var hiddenSelect = document.getElementById('time-limit-select');
-        timePills.forEach(function(pill) {
-            pill.addEventListener('click', function() {
-                timePills.forEach(function(p) { p.classList.remove('active'); });
-                pill.classList.add('active');
-                // Update hidden select for JS compatibility
-                hiddenSelect.value = pill.dataset.time;
-            });
-        });
     </script>
 </body>
 </html>

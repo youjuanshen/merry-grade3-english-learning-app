@@ -250,6 +250,7 @@
         <div class="control-header">
             <h2 id="display-module">听力 - 热身赛</h2>
             <span class="phase-badge" id="phase-badge">🏃 热身赛阶段</span>
+            <div id="elapsed-time" style="text-align:center; font-size:13px; color:#888; margin-top:4px;">已进行 0 分钟</div>
         </div>
 
         <div class="timer-card">
@@ -263,6 +264,13 @@
                 <div class="timer-preset" data-min="20">20分钟</div>
             </div>
 
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+                <span style="font-size:13px; color:#888;">自定义：</span>
+                <input type="number" id="custom-timer-input" min="1" max="60" placeholder="分钟"
+                       style="width:70px; padding:8px; border:1.5px solid #ddd; border-radius:8px; font-size:14px; text-align:center;">
+                <button onclick="startCustomTimer()" style="padding:8px 16px; background:var(--teacher-primary, #4CAF50); color:white; border:none; border-radius:8px; font-size:13px; cursor:pointer;">开始</button>
+            </div>
+
             <!-- Main action: launch practice + start timer -->
             <button class="launch-btn" id="btn-launch">🚀 进入闯关赛</button>
 
@@ -270,6 +278,34 @@
             <div class="timer-mini-controls" id="timer-controls">
                 <button class="mini-btn pause-btn" id="btn-timer-pause">⏸ 暂停</button>
                 <button class="mini-btn reset-btn" id="btn-timer-reset">重新计时</button>
+            </div>
+        </div>
+
+        <!-- 学生实时进度 -->
+        <div class="teacher-card" id="live-progress-card" style="margin-top: 16px;">
+            <h3 class="card-title" style="border-bottom: 2px solid #4CAF50; padding-bottom: 8px;">📊 学生实时进度</h3>
+
+            <!-- 已完成 -->
+            <div id="completed-section" style="margin-bottom: 16px;">
+                <div style="font-weight:600; color:#27ae60; font-size:15px; margin-bottom:8px;">✅ 已完成 (<span id="completed-count">0</span>组)</div>
+                <div id="completed-list" style="font-size:14px; color:#555;">
+                    <div style="color:#bbb; padding: 8px 0;">等待数据...</div>
+                </div>
+            </div>
+
+            <!-- 需要帮助 -->
+            <div id="needshelp-section" style="margin-bottom: 16px;">
+                <div style="font-weight:600; color:#e67e22; font-size:15px; margin-bottom:8px;">⚠️ 需要帮助 (<span id="needshelp-count">0</span>组)</div>
+                <div id="needshelp-list" style="font-size:14px; color:#555;">
+                    <div style="color:#bbb; padding: 4px 0;">暂无</div>
+                </div>
+            </div>
+
+            <!-- 正常进行中 -->
+            <div id="normal-section">
+                <div style="font-size:14px; color:#888; padding: 8px 0; text-align:center;" id="normal-text">
+                    其他 0 组正常进行中 ✓
+                </div>
             </div>
         </div>
     </div>
@@ -367,6 +403,36 @@
 
         updateTimerUI();
 
+        // 自定义时间
+        function startCustomTimer() {
+            var input = document.getElementById('custom-timer-input');
+            var minutes = parseInt(input.value);
+            if (!minutes || minutes < 1 || minutes > 60) {
+                input.style.borderColor = '#e74c3c';
+                setTimeout(function() { input.style.borderColor = '#ddd'; }, 1500);
+                return;
+            }
+            totalSeconds = minutes * 60;
+            remainingSeconds = totalSeconds;
+            updateTimerUI();
+            if (typeof startCountdown === 'function') startCountdown();
+        }
+
+        // 已进行时间
+        var classStartedAt = parseInt(localStorage.getItem('merry_class_started') || '0');
+        if (classStartedAt) {
+            var elEl = document.getElementById('elapsed-time');
+            if (elEl) {
+                var elapsed0 = Math.floor((Date.now() - classStartedAt) / 60000);
+                elEl.textContent = '已进行 ' + elapsed0 + ' 分钟';
+            }
+            setInterval(function() {
+                var elapsed = Math.floor((Date.now() - classStartedAt) / 60000);
+                var el = document.getElementById('elapsed-time');
+                if (el) el.textContent = '已进行 ' + elapsed + ' 分钟';
+            }, 10000);
+        }
+
         // ===== 全班跳转：SCF 通信 =====
         // 环境判断：本地网络走本地代理，公网走 SCF
         var _hostname = window.location.hostname;
@@ -414,6 +480,97 @@
                     statusEl.textContent = '✗ 发送失败：' + err.message;
                 });
         }
+    </script>
+
+    <script>
+    // 学生实时进度轮询
+    (function() {
+        function pollProgress() {
+            var allProgress = [];
+            var pending = 27;
+
+            for (var i = 1; i <= 27; i++) {
+                (function(idx) {
+                    Sync.getDashboardDataOnce('studentProgress_' + idx).then(function(p) {
+                        if (p) allProgress.push(p);
+                        pending--;
+                        if (pending === 0) renderProgress(allProgress);
+                    }).catch(function() {
+                        pending--;
+                        if (pending === 0) renderProgress(allProgress);
+                    });
+                })(i);
+            }
+        }
+
+        function renderProgress(allProgress) {
+            if (allProgress.length === 0) return;
+
+            var completed = [];
+            var normal = [];
+
+            allProgress.forEach(function(p) {
+                if (p.completed) {
+                    completed.push(p);
+                } else {
+                    normal.push(p);
+                }
+            });
+
+            // 按星星数排序完成组
+            completed.sort(function(a, b) { return (b.stars || 0) - (a.stars || 0); });
+
+            // 完成列表
+            document.getElementById('completed-count').textContent = completed.length;
+            var completedHtml = '';
+            if (completed.length === 0) {
+                completedHtml = '<div style="color:#bbb; padding: 4px 0;">暂无小组完成</div>';
+            } else {
+                completed.forEach(function(p) {
+                    completedHtml += '<div style="padding:6px 10px; margin-bottom:4px; background:#f0fff0; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">' +
+                        '<span>' + (p.studentName || '') + (p.partnerName ? ' & ' + p.partnerName : '') + '</span>' +
+                        '<span style="color:#27ae60; font-weight:600;">⭐' + (p.stars || 0) + ' 第' + (p.currentQuestion || 0) + '/' + (p.totalQuestions || 0) + '题</span>' +
+                        '</div>';
+                });
+            }
+            document.getElementById('completed-list').innerHTML = completedHtml;
+
+            // 需要帮助（未完成且正确率低于50%且已答5题以上）
+            var stuck = [];
+            var ok = [];
+            normal.forEach(function(p) {
+                var acc = (p.totalAnswered > 0) ? (p.correct / p.totalAnswered) : 1;
+                if (p.totalAnswered >= 5 && acc < 0.5) {
+                    stuck.push(p);
+                } else {
+                    ok.push(p);
+                }
+            });
+
+            document.getElementById('needshelp-count').textContent = stuck.length;
+            var helpHtml = '';
+            if (stuck.length === 0) {
+                helpHtml = '<div style="color:#bbb; padding: 4px 0;">暂无</div>';
+            } else {
+                stuck.forEach(function(p) {
+                    var acc = p.totalAnswered > 0 ? Math.round(p.correct / p.totalAnswered * 100) : 0;
+                    helpHtml += '<div style="padding:6px 10px; margin-bottom:4px; background:#fff8f0; border-radius:8px; border-left:3px solid #e67e22;">' +
+                        '<div>' + (p.studentName || '') + (p.partnerName ? ' & ' + p.partnerName : '') + '</div>' +
+                        '<div style="font-size:12px; color:#e67e22; margin-top:2px;">第' + (p.currentQuestion || 0) + '/' + (p.totalQuestions || 0) + '题 · 正确率' + acc + '%' +
+                        (p.wrongWords && p.wrongWords.length > 0 ? ' · 易错词: ' + p.wrongWords.join(', ') : '') + '</div>' +
+                        '</div>';
+                });
+            }
+            document.getElementById('needshelp-list').innerHTML = helpHtml;
+
+            // 正常进行中
+            document.getElementById('normal-text').textContent = '其他 ' + ok.length + ' 组正常进行中 ✓';
+        }
+
+        // 每5秒轮询
+        pollProgress();
+        setInterval(pollProgress, 5000);
+    })();
     </script>
 </body>
 </html>

@@ -62,17 +62,6 @@ function initPreparePage() {
         });
     }
 
-    // 恢复阶段选择
-    if (currentPhase) {
-        const phaseSelectors = document.querySelectorAll('.phase-select');
-        phaseSelectors.forEach(el => {
-            el.classList.remove('active');
-            if (el.dataset.phase === currentPhase) {
-                el.classList.add('active');
-            }
-        });
-    }
-
     renderObjectives(currentLesson);
     // 强制同步一次界面内容保证和 DOM element 绝对一致
     updateCurrentLesson();
@@ -104,16 +93,6 @@ function initPreparePage() {
         };
     });
 
-    // Phase Selector Logic (前测/实战)
-    const phaseSelectors = document.querySelectorAll('.phase-select');
-    phaseSelectors.forEach(el => {
-        el.onclick = () => {
-            phaseSelectors.forEach(p => p.classList.remove('active'));
-            el.classList.add('active');
-            currentPhase = el.dataset.phase;
-        };
-    });
-
     // Start Class
     var btnStart = document.getElementById('btn-start-class');
 
@@ -130,7 +109,7 @@ function initPreparePage() {
             bindPublishButton(); // 重新绑定发布逻辑
             // 视觉反馈
             btnReset.textContent = '✅ 已重置！';
-            setTimeout(function() { btnReset.textContent = '🔄 重置课堂 (换课程重新发布)'; }, 1500);
+            setTimeout(function() { btnReset.textContent = '🔄 重置课堂'; }, 1500);
         };
     }
 
