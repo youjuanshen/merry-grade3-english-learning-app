@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initPage() {
+    // 先绑定事件（确保 UI 可交互，不受后续逻辑报错影响）
+    bindModuleSelector();
+    bindPublishButton();
+
+    // 恢复上次选择
+    try { restoreSelections(); } catch(e) { console.warn('restoreSelections error:', e); }
+
     // 检查是否已发布（2小时内有效）
     var classStartedAt = localStorage.getItem('merry_class_started');
     if (classStartedAt && (Date.now() - parseInt(classStartedAt)) < 2 * 60 * 60 * 1000) {
@@ -27,13 +34,6 @@ function initPage() {
         if (classStartedAt) localStorage.removeItem('merry_class_started');
         showSetupMode();
     }
-
-    // 恢复上次选择
-    restoreSelections();
-
-    // 绑定事件
-    bindModuleSelector();
-    bindPublishButton();
 
     // 监听教师命令（同步状态）
     Sync.listenTeacherCommand(function(cmd) {
@@ -351,6 +351,7 @@ function resetClass() {
 
 // --- 教学目标渲染（从原teacher.js迁移，保持不变）---
 function renderObjectives(lessonId) {
+    if (typeof lessonObjectives === 'undefined') return;
     var data = lessonObjectives[lessonId];
     if (!data) return;
 
