@@ -6,192 +6,174 @@
     <title>Merry英语 - 教师端</title>
     <link rel="stylesheet" href="teacher.css?v=50">
     <style>
-        body {
-            background-color: #f2f6fa;
-            min-height: 100vh;
-            margin: 0;
-            position: relative;
-            overflow-x: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        /* Ambient Dynamic Background Orbs */
-        .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(70px);
-            z-index: -1;
-            animation: orbFloat 25s infinite ease-in-out alternate;
-        }
-        .orb-1 {
-            width: 350px; height: 350px;
-            background: rgba(88, 204, 2, 0.35); /* Merry Green */
-            top: -100px; left: -100px;
-        }
-        .orb-2 {
-            width: 400px; height: 400px;
-            background: rgba(77, 196, 249, 0.25); /* Merry Blue */
-            bottom: -150px; right: -100px;
-            animation-delay: -7s;
-        }
-        .orb-3 {
-            width: 250px; height: 250px;
-            background: rgba(255, 185, 0, 0.2); /* Warm Yellow */
-            top: 40%; left: 40%;
-            animation-delay: -14s;
-        }
-
-        @keyframes orbFloat {
-            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-            50% { transform: translate(50px, -60px) scale(1.1) rotate(10deg); }
-            100% { transform: translate(-30px, 40px) scale(0.95) rotate(-5deg); }
-        }
-
-        .teacher-home-header {
-            text-align: center;
-            padding: 50px 20px 30px;
-            color: #2c3e50;
-        }
-        .teacher-home-header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            margin: 0 0 10px 0;
-            letter-spacing: 0.5px;
-        }
-        .teacher-home-header p {
-            font-size: 15px;
-            color: #5c6c7c;
-            margin: 0;
-            font-weight: 500;
-        }
-        .home-cards {
-            padding: 0 20px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 420px;
-            margin: 0 auto;
-        }
-        .home-card {
+        /* Collapsible objectives */
+        .obj-toggle {
             display: flex;
             align-items: center;
-            gap: 18px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 20px;
-            padding: 24px 22px;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
+            justify-content: space-between;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .obj-toggle .card-title {
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .obj-arrow {
+            font-size: 12px;
+            color: #aaa;
+            transition: transform 0.3s ease;
+            padding: 6px 10px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            line-height: 1;
+        }
+        .obj-arrow.open {
+            transform: rotate(180deg);
+        }
+        .obj-body {
+            max-height: 0;
             overflow: hidden;
+            transition: max-height 0.35s ease;
         }
-        .home-card:active {
-            transform: scale(0.97) translateY(2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        .obj-body.open {
+            max-height: 800px;
         }
-        .home-card-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            flex-shrink: 0;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        .obj-hint {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 6px;
         }
-        .home-card-icon.blue {
-            background: linear-gradient(135deg, #f0f8ff, #d6eaff);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-        .home-card-icon.green {
-            background: linear-gradient(135deg, #f0fff0, #d4f5d4);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-        .home-card-text h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 0 0 6px 0;
-            color: #2c3e50;
-        }
-        .home-card-text p {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin: 0;
-            line-height: 1.4;
-        }
-        .home-card-arrow {
-            margin-left: auto;
-            font-size: 24px;
-            color: #cbd5e1;
-            flex-shrink: 0;
-            transition: color 0.3s;
-        }
-        .home-card:active .home-card-arrow {
-            color: #94a3b8;
-        }
-        
-        /* Subtle vibrant accent bar on the left */
-        .home-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            border-radius: 20px 0 0 20px;
-        }
-        .home-card.card-blue::before {
-            background: linear-gradient(180deg, #4dc4f9, #1cb0f6);
-        }
-        .home-card.card-green::before {
-            background: linear-gradient(180deg, #58cc02, #46a302);
-        }
-        
-        .home-version {
-            text-align: center;
-            padding: 40px 0;
-            color: #94a3b8;
-            font-size: 13px;
-            font-weight: 500;
+        .obj-body.open + .obj-hint {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- 动态氛围背景 -->
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
-    <div class="bg-orb orb-3"></div>
-
-    <div class="teacher-home-header">
+    <div class="top-nav">
         <h1>🎓 Merry英语 · 教师端</h1>
-        <p>智慧课堂控制中心</p>
     </div>
 
-    <div class="home-cards">
-        <a href="prepare.html" class="home-card card-blue">
-            <div class="home-card-icon blue">📚</div>
-            <div class="home-card-text">
-                <h3>课前准备</h3>
-                <p>选择课程、设置模块</p>
-            </div>
-            <div class="home-card-arrow">›</div>
-        </a>
+    <div class="teacher-view">
 
-        <a href="control.html" class="home-card card-green">
-            <div class="home-card-icon green">🎯</div>
-            <div class="home-card-text">
-                <h3>课中控制</h3>
-                <p>倒计时、进度监控、闯关赛</p>
+        <!-- ===== 设置模式 ===== -->
+        <div id="setup-area">
+            <!-- 选择课程 -->
+            <div class="teacher-card">
+                <h3 class="card-title">📚 选择课程</h3>
+                <div class="grid-2">
+                    <select class="select-input" id="unit-select">
+                        <option value="1">Unit 1 动物</option>
+                        <option value="2">Unit 2 数字</option>
+                        <option value="3">Unit 3 颜色</option>
+                        <option value="4">Unit 4 身体</option>
+                    </select>
+                    <select class="select-input" id="lesson-select">
+                        <option value="1">Lesson 1</option>
+                        <option value="2">Lesson 2</option>
+                        <option value="3">Lesson 3</option>
+                        <option value="4">Lesson 4</option>
+                    </select>
+                </div>
             </div>
-            <div class="home-card-arrow">›</div>
-        </a>
+
+            <!-- 选择模块 -->
+            <div class="teacher-card">
+                <h3 class="card-title">🎯 选择模块</h3>
+                <div class="grid-4" id="module-selector">
+                    <div class="module-select active" data-mod="listening">听力<br>✓</div>
+                    <div class="module-select" data-mod="reading">阅读<br>&nbsp;</div>
+                    <div class="module-select" data-mod="writing">写作<br>&nbsp;</div>
+                    <div class="module-select" data-mod="speaking">口语<br>&nbsp;</div>
+                </div>
+            </div>
+
+            <!-- 答题时间（一行式） -->
+            <div class="teacher-card" style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px;">
+                <span style="font-size:15px; font-weight:600; color:#333;">⏱ 每题答题时间</span>
+                <select class="select-input" id="time-limit-select" style="width:auto; min-width:120px; margin:0;">
+                    <option value="0" selected>不限时</option>
+                    <option value="15">15 秒/题</option>
+                    <option value="20">20 秒/题</option>
+                    <option value="30">30 秒/题</option>
+                    <option value="45">45 秒/合作题</option>
+                </select>
+            </div>
+
+            <!-- 教学目标（可折叠，默认收起） -->
+            <div class="teacher-card">
+                <div class="obj-toggle" onclick="toggleObjectives()">
+                    <h3 class="card-title">📖 教学目标</h3>
+                    <span class="obj-arrow" id="obj-arrow">▼</span>
+                </div>
+                <div class="obj-body" id="obj-body">
+                    <div id="objectives-container" style="margin-top:8px;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+                <div class="obj-hint" id="obj-hint">点击展开查看本课教学目标</div>
+            </div>
+
+            <!-- 发布按钮 -->
+            <div style="margin-top:8px;">
+                <button class="teacher-btn btn-primary" id="btn-start-class">🚀 开始上课 (发布任务)</button>
+            </div>
+        </div>
+
+        <!-- ===== 控制模式 ===== -->
+        <div id="control-area" style="display:none;">
+            <!-- 顶部信息 -->
+            <div style="text-align:center; margin-bottom:16px;">
+                <h2 id="control-title" style="font-size:20px; font-weight:800; color:#2c3e50; margin:0 0 4px;">U1L1 · 听力</h2>
+                <div id="elapsed-time" style="font-size:13px; color:#888;">已进行 0 分钟</div>
+                <div id="stats-bar" style="font-size:14px; color:#666; margin-top:4px;">等待学生加入...</div>
+            </div>
+
+            <!-- 需要帮助 -->
+            <div class="teacher-card" style="border-left:3px solid #e67e22;">
+                <h3 class="card-title" style="color:#e67e22; margin-bottom:8px;">⚠️ 需要帮助 (<span id="help-count">0</span>组)</h3>
+                <div id="help-list"><div style="color:#bbb;">暂无</div></div>
+            </div>
+
+            <!-- 已完成 -->
+            <div class="teacher-card" style="border-left:3px solid #27ae60;">
+                <h3 class="card-title" style="color:#27ae60; margin-bottom:8px;">✅ 已完成 (<span id="done-count">0</span>组)</h3>
+                <div id="done-list"><div style="color:#bbb;">暂无</div></div>
+            </div>
+
+            <!-- 正常进行中 -->
+            <div style="text-align:center; padding:12px 0; font-size:14px; color:#888;" id="normal-text">
+                其他 0 组正常进行中 ✓
+            </div>
+
+            <!-- 底部按钮 -->
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button class="teacher-btn" onclick="toggleRanking()" style="flex:1; background:#f8f9fa; color:#555; border:1.5px solid #e0e0e0; font-size:13px; padding:10px;">🏆 排行榜</button>
+                <button class="teacher-btn" onclick="toggleWrongWords()" style="flex:1; background:#f8f9fa; color:#555; border:1.5px solid #e0e0e0; font-size:13px; padding:10px;">📖 易错词</button>
+                <button class="teacher-btn" onclick="resetClass()" style="flex:1; background:#f8f9fa; color:#999; border:1.5px solid #e0e0e0; font-size:13px; padding:10px;">🔄 重置</button>
+            </div>
+
+            <!-- 排行榜面板（默认隐藏） -->
+            <div id="ranking-panel" class="teacher-card" style="display:none; margin-top:12px;"></div>
+
+            <!-- 易错词面板（默认隐藏） -->
+            <div id="wrongwords-panel" class="teacher-card" style="display:none; margin-top:12px;"></div>
+        </div>
+
     </div>
 
-    <div class="home-version">v2.0 · Merry English</div>
+    <script src="../firebase-sync.js?v=52"></script>
+    <script src="data.js?v=50"></script>
+    <script src="teacher.js?v=52"></script>
+    <script>
+        function toggleObjectives() {
+            var body = document.getElementById('obj-body');
+            var arrow = document.getElementById('obj-arrow');
+            var hint = document.getElementById('obj-hint');
+            body.classList.toggle('open');
+            arrow.classList.toggle('open');
+            hint.style.display = body.classList.contains('open') ? 'none' : 'block';
+        }
+    </script>
 </body>
 </html>
