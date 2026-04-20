@@ -42,16 +42,20 @@ function initPage() {
 }
 
 function showSetupMode() {
-    document.getElementById('setup-area').style.display = '';
-    document.getElementById('control-area').style.display = 'none';
+    var setup = document.getElementById('setup-area');
+    var control = document.getElementById('control-area');
+    if (setup) setup.style.display = '';
+    if (control) control.style.display = 'none';
 }
 
 function showControlMode() {
-    document.getElementById('setup-area').style.display = 'none';
-    document.getElementById('control-area').style.display = '';
-    updateControlTitle();
-    startElapsedTimer();
-    startProgressPolling();
+    var setup = document.getElementById('setup-area');
+    var control = document.getElementById('control-area');
+    if (setup) setup.style.display = 'none';
+    if (control) control.style.display = '';
+    try { updateControlTitle(); } catch(e) { console.warn('updateControlTitle:', e); }
+    try { startElapsedTimer(); } catch(e) { console.warn('startElapsedTimer:', e); }
+    try { startProgressPolling(); } catch(e) { console.warn('startProgressPolling:', e); }
 }
 
 // --- 恢复上次选择 ---
