@@ -55,7 +55,21 @@ document.addEventListener('DOMContentLoaded', function() {
     var localLesson = Sync.getCurrentLessonOnceSync ? Sync.getCurrentLessonOnceSync() : null;
     applyLessonDisplay(localLesson);
     // 再异步从云端更新（不阻塞页面）
-    Sync.getCurrentLessonOnce().then(applyLessonDisplay);
+    Sync.getCurrentLessonOnce().then(function(lesson) {
+        applyLessonDisplay(lesson);
+        // 同步状态提示（调试用）
+        var syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+            syncStatus.textContent = lesson ? '✅ 已连接教师端: ' + (lesson.displayName || '') : '⏳ 未检测到教师发布';
+            syncStatus.style.color = lesson ? '#27ae60' : '#e67e22';
+        }
+    }).catch(function() {
+        var syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+            syncStatus.textContent = '❌ 云端连接失败';
+            syncStatus.style.color = '#e74c3c';
+        }
+    });
 });
 
 // 计时器相关
