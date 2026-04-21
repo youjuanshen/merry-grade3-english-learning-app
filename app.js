@@ -1132,15 +1132,16 @@ nextBtn.onclick = function() {
 
     // 检查是否有教师指令：如果教师已发布课程，自动跳转到指定模块
     var teacherCmd = Sync.getTeacherCommandOnce();
+    console.log('[Sync] 教师指令检查:', JSON.stringify(teacherCmd));
     if (teacherCmd && teacherCmd.action === 'start' && teacherCmd.lesson && teacherCmd.module) {
-        console.log('[Sync] 检测到教师指令，自动进入:', teacherCmd.lesson, teacherCmd.module);
         var lessonData = getLessonData(teacherCmd.lesson);
+        console.log('[Sync] 课程数据:', teacherCmd.lesson, lessonData ? '已加载' : '未加载');
         if (lessonData) {
             currentLessonData = lessonData;
             currentModule = teacherCmd.module;
             currentPhase = teacherCmd.phase || 'practice';
             currentTimeLimit = Math.max(0, Math.min(300, teacherCmd.timeLimit || 0));
-            // 直接开始游戏（跳过模块选择页）
+            console.log('[Sync] 自动进入:', teacherCmd.lesson, teacherCmd.module);
             startGame();
             return;
         }
