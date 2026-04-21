@@ -6,9 +6,9 @@ import https from 'https';
 import crypto from 'crypto';
 import fs from 'fs';
 
-const LARK_APP_ID = "cli_a93bc13364f88060";
-const LARK_APP_SECRET = "mJRuXzOQk9ejHdvIvFFfVbmvGycI1KdR";
-const LARK_APP_TOKEN = "Oy1dbiDS7aLIS8sqI1ZumqJSt8b";
+const LARK_APP_ID = process.env.LARK_APP_ID || '';
+const LARK_APP_SECRET = process.env.LARK_APP_SECRET || '';
+const LARK_APP_TOKEN = process.env.LARK_APP_TOKEN || '';
 
 // 两个表
 const TABLE_SCORES = "tbluJjXQDQ2mxjxO";   // 课堂练习成绩
