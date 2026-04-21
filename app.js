@@ -1123,13 +1123,30 @@ document.querySelectorAll('#test-module-btns .tsel-btn').forEach(function(btn) {
     };
 });
 
-// Step 1: Click "开始学习" → 显示模块选择页（冒险版）
+// Step 1: Click "开始学习" → 检查教师指令，有则自动进入，无则显示模块选择页
 nextBtn.onclick = function() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     players = selectedStudents.map(n => ({ name: n, stars: 0, correct: 0, total: 0 }));
     window.players = players; // 同步到全局，coop-types.js 的 getPlayerShortName() 依赖 window.players
     document.getElementById('login-screen').classList.remove('active');
-    // 直接进入冒险模块选择页
+
+    // 检查是否有教师指令：如果教师已发布课程，自动跳转到指定模块
+    var teacherCmd = Sync.getTeacherCommandOnce();
+    if (teacherCmd && teacherCmd.action === 'start' && teacherCmd.lesson && teacherCmd.module) {
+        console.log('[Sync] 检测到教师指令，自动进入:', teacherCmd.lesson, teacherCmd.module);
+        var lessonData = getLessonData(teacherCmd.lesson);
+        if (lessonData) {
+            currentLessonData = lessonData;
+            currentModule = teacherCmd.module;
+            currentPhase = teacherCmd.phase || 'practice';
+            currentTimeLimit = Math.max(0, Math.min(300, teacherCmd.timeLimit || 0));
+            // 直接开始游戏（跳过模块选择页）
+            startGame();
+            return;
+        }
+    }
+
+    // 没有教师指令，显示模块选择页
     document.getElementById('module-screen').style.display = '';
     document.getElementById('module-screen').classList.add('active');
     // 更新 Project 卡片解锁状态
