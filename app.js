@@ -321,7 +321,7 @@ function syncStudentProgress(isComplete = false) {
 // Module Control
 let currentModule = 'listening';
 let currentPhase = 'practice'; // 取消前测，直接实战
-let currentLessonData = (typeof lesson1 !== 'undefined') ? lesson1 : null;
+let currentLessonData = (typeof u1l1_coop !== 'undefined') ? u1l1_coop : ((typeof lesson1 !== 'undefined') ? lesson1 : null);
 let moduleQuestions = [];
 
 // Professional hints - Duolingo style (不直接给答案，引导思考)
@@ -1088,7 +1088,7 @@ var studentSelfSelectMode = false;
 // 课程数据映射：根据 lessonId 获取对应数据对象
 function getLessonData(lessonId) {
     var map = {
-        'U1L1': typeof lesson1 !== 'undefined' ? lesson1 : null,
+        'U1L1': typeof u1l1_coop !== 'undefined' ? u1l1_coop : (typeof lesson1 !== 'undefined' ? lesson1 : null),
         'U1L2': typeof unit1_lesson2 !== 'undefined' ? unit1_lesson2 : null,
         'U1L3': typeof unit1_lesson3 !== 'undefined' ? unit1_lesson3 : null,
         'U1L4': typeof unit1_lesson4 !== 'undefined' ? unit1_lesson4 : null,
@@ -3395,7 +3395,7 @@ if (mapBtn) {
 function selectLessonFromMap(lessonId) {
     // 根据lessonId找到对应的课程数据（旧方案数据已清理，仅保留typeof守卫避免崩溃）
     var lessonMap = {
-        'U1L1': (typeof lesson1 !== 'undefined') ? lesson1 : null,
+        'U1L1': (typeof u1l1_coop !== 'undefined') ? u1l1_coop : ((typeof lesson1 !== 'undefined') ? lesson1 : null),
         'U1L2': (typeof unit1_lesson2 !== 'undefined') ? unit1_lesson2 : null,
         'U1L3': (typeof unit1_lesson3 !== 'undefined') ? unit1_lesson3 : null,
         'U1L4': (typeof unit1_lesson4 !== 'undefined') ? unit1_lesson4 : null,
@@ -3968,7 +3968,7 @@ function getCurrentLessonId() {
     }
     // 兜底：逐个比较引用
     var lessonMap = {
-        'U1L1': typeof lesson1 !== 'undefined' ? lesson1 : null,
+        'U1L1': typeof u1l1_coop !== 'undefined' ? u1l1_coop : (typeof lesson1 !== 'undefined' ? lesson1 : null),
         'U1L2': typeof unit1_lesson2 !== 'undefined' ? unit1_lesson2 : null,
         'U1L3': typeof unit1_lesson3 !== 'undefined' ? unit1_lesson3 : null,
         'U1L4': typeof unit1_lesson4 !== 'undefined' ? unit1_lesson4 : null,
