@@ -343,14 +343,114 @@ async function getCommand(token, key) {
     return null;
 }
 
-// ========== 教师指令内存缓存（不走飞书，省 API 配额）==========
+// ========== 腾讯云 COS 持久化（teacherCommand / currentLesson）==========
+
+const COS_BUCKET = 'merry-classroom-1316992450';
+const COS_REGION = 'ap-guangzhou';
+const COS_HOST = COS_BUCKET + '.cos.' + COS_REGION + '.myqcloud.com';
+
+function cosSign(method, path, secretId, secretKey) {
+    var now = Math.floor(Date.now() / 1000);
+    var exp = now + 600; // 10分钟有效
+    var keyTime = now + ';' + exp;
+
+    var signKey = crypto.createHmac('sha1', secretKey).update(keyTime).digest('hex');
+
+    var httpString = method.toLowerCase() + '\n' + path + '\n\n\n';
+    var sha1edHttpString = crypto.createHash('sha1').update(httpString).digest('hex');
+    var stringToSign = 'sha1\n' + keyTime + '\n' + sha1edHttpString + '\n';
+    var signature = crypto.createHmac('sha1', signKey).update(stringToSign).digest('hex');
+
+    return 'q-sign-algorithm=sha1&q-ak=' + secretId +
+        '&q-sign-time=' + keyTime +
+        '&q-key-time=' + keyTime +
+        '&q-header-list=&q-url-param-list=&q-signature=' + signature;
+}
+
+function cosPut(key, value) {
+    return new Promise(function(resolve, reject) {
+        var secretId = process.env.TENCENT_SECRET_ID || '';
+        var secretKey = process.env.TENCENT_SECRET_KEY || '';
+        if (!secretId || !secretKey) return reject(new Error('COS credentials missing'));
+
+        var path = '/' + key;
+        var body = typeof value === 'string' ? value : JSON.stringify(value);
+        var auth = cosSign('PUT', path, secretId, secretKey);
+
+        var options = {
+            hostname: COS_HOST,
+            path: path,
+            method: 'PUT',
+            headers: {
+                'Authorization': auth,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body)
+            }
+        };
+
+        var req = https.request(options, function(res) {
+            var chunks = [];
+            res.on('data', function(c) { chunks.push(c); });
+            res.on('end', function() {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    resolve();
+                } else {
+                    reject(new Error('COS PUT ' + res.statusCode + ': ' + Buffer.concat(chunks).toString()));
+                }
+            });
+        });
+        req.on('error', reject);
+        req.setTimeout(10000, function() { req.destroy(new Error('COS timeout')); });
+        req.write(body);
+        req.end();
+    });
+}
+
+function cosGet(key) {
+    return new Promise(function(resolve, reject) {
+        var secretId = process.env.TENCENT_SECRET_ID || '';
+        var secretKey = process.env.TENCENT_SECRET_KEY || '';
+        if (!secretId || !secretKey) return reject(new Error('COS credentials missing'));
+
+        var path = '/' + key;
+        var auth = cosSign('GET', path, secretId, secretKey);
+
+        var options = {
+            hostname: COS_HOST,
+            path: path,
+            method: 'GET',
+            headers: {
+                'Authorization': auth
+            }
+        };
+
+        var req = https.request(options, function(res) {
+            var chunks = [];
+            res.on('data', function(c) { chunks.push(c); });
+            res.on('end', function() {
+                if (res.statusCode === 200) {
+                    resolve(Buffer.concat(chunks).toString());
+                } else if (res.statusCode === 404) {
+                    resolve(null); // 文件不存在
+                } else {
+                    reject(new Error('COS GET ' + res.statusCode));
+                }
+            });
+        });
+        req.on('error', reject);
+        req.setTimeout(10000, function() { req.destroy(new Error('COS timeout')); });
+        req.end();
+    });
+}
+
+// ========== 教师指令内存缓存（COS 兜底跨实例）==========
 
 const _cmdCache = {};
 const CMD_TMP_DIR = '/tmp/merry_cmd';
 
 function cmdSet(key, value) {
     _cmdCache[key] = value;
-    // /tmp 文件备份（防多实例/冷启动）
+    // /tmp 文件备份（同实例快速恢复）
     try {
         if (!fs.existsSync(CMD_TMP_DIR)) fs.mkdirSync(CMD_TMP_DIR, { recursive: true });
         fs.writeFileSync(CMD_TMP_DIR + '/' + key + '.json', typeof value === 'string' ? value : JSON.stringify(value));
@@ -675,11 +775,11 @@ export const main_handler = async (event, context) => {
 
         // 1. 写入指令
         if (d.action === 'set') {
-            // 教师指令：内存 + 飞书双写（内存快，飞书兜底多实例/冷启动）
+            // 教师指令：内存 + COS 双写（内存快，COS 兜底多实例/冷启动）
             if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
                 cmdSet(d.key, d.value);
-                // 同时写飞书（非阻塞，失败不影响返回）
-                try { await setCommand(await ensureToken(), d.key, d.value); } catch(e) {}
+                // 同时写 COS（非阻塞，失败不影响返回）
+                try { await cosPut('cmd/' + d.key + '.json', d.value); } catch(e) { console.log('COS put error:', e.message); }
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok' }) };
             }
             // 学生进度：只存内存（高频写入，不走飞书）
@@ -695,20 +795,20 @@ export const main_handler = async (event, context) => {
 
         // 2. 读取指令
         if (d.action === 'get') {
-            // 教师指令：先内存，没有则飞书兜底
+            // 教师指令：先内存，没有则 COS 兜底
             if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
                 var val = cmdGet(d.key);
                 if (val !== null) {
                     return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: val }) };
                 }
-                // 内存没有，从飞书读（冷启动/换实例场景）
+                // 内存没有，从 COS 读（冷启动/换实例场景）
                 try {
-                    var fbVal = await getCommand(await ensureToken(), d.key);
-                    if (fbVal !== null) {
-                        cmdSet(d.key, fbVal); // 回填内存缓存
-                        return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: fbVal }) };
+                    var cosVal = await cosGet('cmd/' + d.key + '.json');
+                    if (cosVal !== null) {
+                        cmdSet(d.key, cosVal); // 回填内存缓存
+                        return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: cosVal }) };
                     }
-                } catch(e) {}
+                } catch(e) { console.log('COS get error:', e.message); }
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: null }) };
             }
             // 学生进度：只读内存
