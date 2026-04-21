@@ -675,8 +675,15 @@ export const main_handler = async (event, context) => {
 
         // 1. 写入指令
         if (d.action === 'set') {
-            // 教师指令 + 学生进度 存内存+/tmp（不走飞书，省配额）
-            if (d.key === 'teacherCommand' || d.key === 'currentLesson' || (d.key && d.key.indexOf('studentProgress_') === 0)) {
+            // 教师指令：内存 + 飞书双写（内存快，飞书兜底多实例/冷启动）
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+                cmdSet(d.key, d.value);
+                // 同时写飞书（非阻塞，失败不影响返回）
+                try { await setCommand(await ensureToken(), d.key, d.value); } catch(e) {}
+                return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok' }) };
+            }
+            // 学生进度：只存内存（高频写入，不走飞书）
+            if (d.key && d.key.indexOf('studentProgress_') === 0) {
                 cmdSet(d.key, d.value);
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, msg: 'ok (memory)' }) };
             }
@@ -688,8 +695,24 @@ export const main_handler = async (event, context) => {
 
         // 2. 读取指令
         if (d.action === 'get') {
-            // 教师指令 + 学生进度 从内存+/tmp读（不走飞书）
-            if (d.key === 'teacherCommand' || d.key === 'currentLesson' || (d.key && d.key.indexOf('studentProgress_') === 0)) {
+            // 教师指令：先内存，没有则飞书兜底
+            if (d.key === 'teacherCommand' || d.key === 'currentLesson') {
+                var val = cmdGet(d.key);
+                if (val !== null) {
+                    return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: val }) };
+                }
+                // 内存没有，从飞书读（冷启动/换实例场景）
+                try {
+                    var fbVal = await getCommand(await ensureToken(), d.key);
+                    if (fbVal !== null) {
+                        cmdSet(d.key, fbVal); // 回填内存缓存
+                        return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: fbVal }) };
+                    }
+                } catch(e) {}
+                return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: null }) };
+            }
+            // 学生进度：只读内存
+            if (d.key && d.key.indexOf('studentProgress_') === 0) {
                 var val = cmdGet(d.key);
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: 0, data: val }) };
             }
