@@ -3,7 +3,7 @@
  * 依赖：firebase-sync.js 的 scfPost（已挂到全局）
  * iOS 12 兼容：无 ?. ?? Promise.allSettled async/await
  */
-try { console.log('[DataReporter] v=131 stable'); } catch (e) {}
+try { console.log('[DataReporter] v=135 stable'); } catch (e) {}
 
 // ===== UUID 生成 =====
 function _drUUID() {
@@ -159,9 +159,13 @@ function buildBehaviorRecord(q, qIndex, wasCorrect, adventureState, timeSpentMs,
         // 安全取数字：防止 null/undefined 传到飞书 Number 字段
         function _safeNum(v) { return (typeof v === 'number' && !isNaN(v)) ? v : 0; }
 
-        // A行（classId和starRewarded已在飞书表建好字段，但暂不上报，避免旧版JS报错）
+        // starRewarded：stationStarRating 在最后一题答对时由 adventure.js 传入（P0-6）
+        var starRewarded = _safeNum(stationStarRating);
+
+        // A行（P0-1: 补 classId；P0-6: 补 starRewarded）
         var recA = {
             logId: _drUUID(),
+            classId: classId,
             studentId: roleAStudentId,
             partnerId: roleBStudentId,
             pairId: pairId,
@@ -177,12 +181,14 @@ function buildBehaviorRecord(q, qIndex, wasCorrect, adventureState, timeSpentMs,
             timeSpentMs: Number(timeSpentMs) || 0,
             scaffoldLevelUsed: Number(scaffoldLevel) || 0,
             retryCount: Number(retryCount) || 0,
-            soeScore: _safeNum(soeA && soeA.soeScore)
+            soeScore: _safeNum(soeA && soeA.soeScore),
+            starRewarded: starRewarded
         };
 
-        // B行
+        // B行（同步补 classId 和 starRewarded）
         var recB = {
             logId: _drUUID(),
+            classId: classId,
             studentId: roleBStudentId,
             partnerId: roleAStudentId,
             pairId: pairId,
@@ -198,7 +204,8 @@ function buildBehaviorRecord(q, qIndex, wasCorrect, adventureState, timeSpentMs,
             timeSpentMs: Number(timeSpentMs) || 0,
             scaffoldLevelUsed: Number(scaffoldLevel) || 0,
             retryCount: Number(retryCount) || 0,
-            soeScore: _safeNum(soeB && soeB.soeScore)
+            soeScore: _safeNum(soeB && soeB.soeScore),
+            starRewarded: starRewarded
         };
 
         // 注意：_pendingSoeScores 不在此处清空，由 adventure.js 的 showCoopFeedback

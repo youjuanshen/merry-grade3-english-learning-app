@@ -561,12 +561,15 @@ export const main_handler = async (event, context) => {
                 return { statusCode: 200, headers: cors, body: JSON.stringify({ code: -1, msg: 'classId and lessonId required' }) };
             }
 
-            // 今天 0:00 ~ 23:59:59 毫秒范围
+            // 今天 0:00 ~ 23:59:59 毫秒范围（Asia/Shanghai UTC+8，避免依赖服务器本地时区）
             var now = Date.now();
-            var todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
-            var dayStartMs = todayStart.getTime();
-            var dayEndMs = dayStartMs + 86400000 - 1;
+            var offsetMs = 8 * 60 * 60 * 1000;
+            var nowCst = new Date(now + offsetMs);
+            var y = nowCst.getUTCFullYear();
+            var m = nowCst.getUTCMonth();
+            var d_cst = nowCst.getUTCDate();
+            var dayStartMs = new Date(Date.UTC(y, m, d_cst) - offsetMs).getTime();
+            var dayEndMs = new Date(Date.UTC(y, m, d_cst + 1) - offsetMs).getTime() - 1;
 
             // 分页抓取 app_behavior_log（每页最多500条）
             var allItems = [];
@@ -596,21 +599,17 @@ export const main_handler = async (event, context) => {
                 }
             }
 
-            // 抓取 student_profile 表，构建 studentId → name 映射
-            var studentMap = {};
-            try {
-                var spUrl = '/open-apis/bitable/v1/apps/' + LARK_APP_TOKEN +
-                    '/tables/' + TABLE_STUDENT_PROFILE + '/records?page_size=500';
-                var spResp = await get('open.feishu.cn', spUrl, await ensureToken());
-                if (spResp.data && spResp.data.items) {
-                    spResp.data.items.forEach(function(rec) {
-                        var f = rec.fields || {};
-                        if (f.studentId && f.name) {
-                            studentMap[String(f.studentId)] = String(f.name);
-                        }
-                    });
-                }
-            } catch(e) { /* 非致命错误，忽略 */ }
+            // P0-2 修复：student_profile 表已删，直接从行为记录里读 studentId/partnerId
+            // 不再查已删的 student_profile 表，studentMap 改为从 pairId 分组后的记录动态推断
+
+            // 各模块实际站点数（P0-3 修复：按 module 动态判断，取代硬编码 [1,2,3,4]）
+            // listening/reading/writing 各 4 站，speaking 只有 3 站
+            var MODULE_STATION_COUNT = {
+                'listening': 4,
+                'reading': 4,
+                'writing': 4,
+                'speaking': 3
+            };
 
             // 按 pairId 分组
             var pairMap = {};
@@ -620,9 +619,6 @@ export const main_handler = async (event, context) => {
                 if (!pairMap[pid]) { pairMap[pid] = []; }
                 pairMap[pid].push(f);
             });
-
-            // U1L1 满站点集合（4个站），可按 lessonId 扩展
-            var REQUIRED_STATIONS = [1, 2, 3, 4];
 
             var completedPairs = [];
             var needsHelpPairs = [];
@@ -650,6 +646,16 @@ export const main_handler = async (event, context) => {
                     if (t > 0 && t < earliestTime) { earliestTime = t; }
                 });
 
+                // P0-3 修复：按该 pair 实际 module 动态取所需站点数
+                // 从记录中取 module 字段（取最新非空值）
+                var pairModule = '';
+                records.forEach(function(f) {
+                    if (f.module && String(f.module).length > 0) { pairModule = String(f.module); }
+                });
+                var requiredCount = MODULE_STATION_COUNT[pairModule] || 4; // 未知 module 保守按 4 站
+                var requiredStations = [];
+                for (var si = 1; si <= requiredCount; si++) { requiredStations.push(si); }
+
                 // 完成判断：isCorrect=true 的 stationId 集合覆盖所有必须站点
                 var correctStations = {};
                 records.forEach(function(f) {
@@ -657,7 +663,7 @@ export const main_handler = async (event, context) => {
                         correctStations[Number(f.stationId)] = true;
                     }
                 });
-                var isCompleted = REQUIRED_STATIONS.every(function(s) { return correctStations[s]; });
+                var isCompleted = requiredStations.every(function(s) { return correctStations[s]; });
 
                 // 最新记录（sessionDate 最大）
                 var latestRecord = records.reduce(function(latest, f) {
@@ -668,18 +674,16 @@ export const main_handler = async (event, context) => {
                 var retryCount = Number(latestRecord.retryCount) || 0;
                 var needsHelp = (scaffoldLevel === 4 && retryCount >= 2);
 
-                // 获取成员名字（studentA / studentB 字段，或从 studentMap 查）
+                // P0-2 修复：读上报字段 studentId/partnerId（原读 studentAId/studentBId，但上报从未写该字段）
+                // pairId 格式为 "小号-大号"，两个 studentId 已在 pairId 里；也可从记录里直接读
                 var members = [];
-                if (latestRecord.studentAId && studentMap[String(latestRecord.studentAId)]) {
-                    members.push(studentMap[String(latestRecord.studentAId)]);
-                } else if (latestRecord.studentA) {
-                    members.push(String(latestRecord.studentA));
-                }
-                if (latestRecord.studentBId && studentMap[String(latestRecord.studentBId)]) {
-                    members.push(studentMap[String(latestRecord.studentBId)]);
-                } else if (latestRecord.studentB) {
-                    members.push(String(latestRecord.studentB));
-                }
+                var memberSet = {};
+                records.forEach(function(f) {
+                    var sid = f.studentId ? String(f.studentId) : '';
+                    var pid2 = f.partnerId ? String(f.partnerId) : '';
+                    if (sid && !memberSet[sid]) { memberSet[sid] = true; members.push(sid); }
+                    if (pid2 && !memberSet[pid2]) { memberSet[pid2] = true; members.push(pid2); }
+                });
                 if (members.length === 0) { members.push('组' + pid); }
 
                 if (isCompleted) {
