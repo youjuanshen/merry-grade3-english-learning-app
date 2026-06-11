@@ -310,3 +310,21 @@ if (existed && existed.parentNode) existed.parentNode.removeChild(existed);
 - [ ] B014：.coop-options-grid 和 .coop-option-card 都显式 `min-width:0`；.coop-option-card img 用 `max-width:100%` 而不是 `width:100%`；有 `max-height` 上限
 - [ ] B019：.coop-option-card.pre-selected（及任何持久状态类）不得使用 transform:scale，改用 border/shadow 视觉反馈，避免 iOS 12 compositing 吞 tap
 - [ ] B021：.content-area 必须 overflow-y:auto（不能 hidden），否则合作题型在 iPhone 上 B区选项会被裁掉，看似卡死；.coop-read-text 英文字号必须 ≥24px（原 18px 太小）
+
+---
+
+### B023：教师 navigate 指令绕过登录页（页面加载时残留指令直接跳模块）
+**现象**：打开网站直接进入"动物园探索"等模块界面，跳过学生选名字登录页
+**根因**：`app.js` 顶层在页面加载后约1秒启动 `Sync.listenTeacherCommand` 轮询，云端若有残留的 `navigate` 指令，`handleTeacherCommand` 直接调用 `showAdventureMap`——**没有检查 `selectedStudents.length`**，学生未登录也能跳转
+**修法**：在 `handleTeacherCommand` 的 `navigate` 分支开头加守卫：
+```js
+if (!selectedStudents || selectedStudents.length < 2) {
+    console.log('[Sync] navigate: 学生未登录，忽略跳转指令');
+    return;
+}
+```
+**文件**：`app.js` — `handleTeacherCommand` 函数的 `navigate` 分支（原约第 187 行）
+**检测**：
+- 浏览器打开页面时 console 出现 `[Sync] navigate: 学生未登录，忽略跳转指令` 说明守卫生效
+- 只有选完两名学生并点"开始学习"之后，教师发 navigate 指令才生效
+**铁律**：任何教师实时指令（listenTeacherCommand 回调）都必须先检查 `selectedStudents.length >= 2`，确认学生已登录才执行跳转

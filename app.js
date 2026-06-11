@@ -190,6 +190,12 @@ function handleTeacherCommand(cmd) {
             console.error('[Sync] navigate: invalid module', cmd.module);
             return;
         }
+        // 必须已登录（selectedStudents.length >= 2）才执行跳转，
+        // 防止页面刚加载时云端旧指令绕过登录页直接进入模块
+        if (!selectedStudents || selectedStudents.length < 2) {
+            console.log('[Sync] navigate: 学生未登录，忽略跳转指令');
+            return;
+        }
         console.log('[Sync] 教师跳转指令: 模块=' + cmd.module);
         // 重置自选模式，允许教师覆盖
         if (typeof studentSelfSelectMode !== 'undefined') {
